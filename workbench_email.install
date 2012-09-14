@@ -1,0 +1,108 @@
+<?php
+
+/**
+ * Implementation of hook_schema
+ * content type, rid, transition, subject, message
+ */
+function workbench_email_schema() {
+  $schema = array();
+  $schema['workbench_email'] = array(
+    'description' => 'Custom table to hold moderation emails',
+    'fields' => array(
+      'from_name'  => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The from state that the email exists',
+      ),
+      'to_name'  => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The to state that this email exists',
+      ),
+      'rid'  => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => 'The role id',
+      ),      
+      'subject'  => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The subject of the email',
+      ),
+      'message'  => array(
+        'description' => 'The message of the email',
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+        'translatable' => TRUE,
+      ),       
+    ),
+    'indexes' => array(
+      'rid'        => array('rid'),
+      'transition' => array('from_name', 'to_name'),
+      'set'        => array('rid', 'from_name', 'to_name'),
+    ),    
+    'primary key' => array('rid', 'from_name', 'to_name'),
+  );
+  
+  $schema['workbench_email_transitions'] = array(
+    'description' => 'Custom table to hold email transitions',
+    'fields' => array(
+      'from_name'  => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The from transition state',
+      ),
+      'to_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The to transition state',
+      ),
+      'rid' => array(
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0,
+        'description' => 'The user role ID',        
+      ),
+      'role'  => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The user role name',
+      ),     
+    ),
+    'indexes' => array(
+      'key'   => array('from_name', 'to_name', 'rid'),
+    ),    
+    'primary key' => array('from_name', 'to_name', 'rid'),
+  );  
+  
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install()
+ */
+function workbench_email_install() {
+  drupal_install_schema('workbench_email');
+  //place workbench email after workbench moderation
+  db_update('system')
+  ->fields(array('weight' => 6))
+  ->condition('name', 'workbench_email')
+  ->execute();
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function workbench_email_uninstall() {
+  drupal_uninstall_schema('workbench_email');
+}
