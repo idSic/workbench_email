@@ -5,8 +5,7 @@
  */
 
 /**
- * Implementation of hook_schema
- * content type, rid, transition, subject, message
+ * Implements hook_schema().
  */
 function workbench_email_schema() {
   $schema = array();
@@ -87,10 +86,10 @@ function workbench_email_schema() {
 }
 
 /**
- * Implementation of hook_install()
+ * Implements hook_install().
  */
 function workbench_email_install() {
-  //place workbench email after workbench moderation
+  //Place workbench email after workbench moderation.
   db_update('system')
   ->fields(array('weight' => 6))
   ->condition('name', 'workbench_email')
@@ -98,7 +97,7 @@ function workbench_email_install() {
 }
 
 /**
- * Implementation of hook_uninstall()
+ * Implements hook_uninstall().
  */
 function workbench_email_uninstall() {
   drupal_uninstall_schema('workbench_email');
