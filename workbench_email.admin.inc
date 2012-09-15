@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * Administrative forms for Workbench Email Module
+ * Administrative forms for Workbench Email Module.
  */
 
 /**
- * Form for administering the email content
+ * Form for administering the email content.
  *
- * Administrators can use this form to add, update, delete emails
+ * Administrators can use this form to add, update, delete emails.
  *
  * @param $form
  *   The form object
@@ -98,9 +98,9 @@ function workbench_email_form($form, &$form_state) {
 }
 
 /**
- * Validates the form values
+ * Validates the form values.
  *
- * Validates if the user has entered a valid subject / message for the emails
+ * Validates if the user has entered a valid subject / message for the emails.
  *
  * @param $form
  *   The form object
@@ -132,7 +132,7 @@ function workbench_email_form_validate($form, &$form_state) {
 }
 
 /**
- * Submit function for the form, saves or deletes emails
+ * Submit function for the form, saves or deletes emails.
  *
  * @param $form
  *   The form object
@@ -280,7 +280,7 @@ function theme_workbench_email_transitions_form($variables) {
 
 /**
  * Form submit handler for email transitions. Adds or deletes email
- * transitions depending on user input
+ * transitions depending on user input.
  *
  * @param $form
  *   The form object

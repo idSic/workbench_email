@@ -59,12 +59,12 @@ Workbench Email requires:
 
 Workbench Moderation's configuration section is located at:
 
-    - Admin > Configuration > Workbench > Workbench Moderation -> Email Transitions
+- Admin > Configuration > Workbench > Workbench Moderation -> Email Transitions
 
 This section allows the admin to configure email transitions based on 
 transition states and user roles.
     
-    - Admin > Configuration > Workbench > Workbench Moderation -> Emails
+- Admin > Configuration > Workbench > Workbench Moderation -> Emails
 
 Depending on what email transtions have been set, the admin can configure each
 transitions subject / message.
@@ -90,10 +90,11 @@ content is moving through configured email transition.
 ----
 5.  Troubleshooting
 
-* If users do not see the node form option that allows them to select the user(s)
-they wish to send an email to check the email transitions and emails administration
-pages. If no email transition is defined, no form option will display. If no
-email subject / message is defined, the system will display the following message:
+* If users do not see the node form option that allows them to select the
+user(s) they wish to send an email to check the email transitions and emails
+administration pages. If no email transition is defined, no form option will
+display. If no email subject / message is defined, the system will display the
+following message: 
 - No email template is set, so no email was sent. Contact your system admin
 to resolve this issue.
 

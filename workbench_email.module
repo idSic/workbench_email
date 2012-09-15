@@ -5,7 +5,7 @@
  */
 
 /**
- * Implements hook_menu
+ * Implements hook_menu().
  */
 function workbench_email_menu() {
   $items = array();
@@ -57,7 +57,7 @@ function workbench_email_help($path, $arg) {
 }
 
 /**
- * Implements hook_permission
+ * Implements hook_permission().
  */
 function workbench_email_permission() {
   $permissions = array();  
@@ -70,11 +70,11 @@ function workbench_email_permission() {
 }
 
 /**
- * Implements hook_form_alter
+ * Implements hook_form_alter().
  *
  * Determines the current state and next state. Depending on that criteria
  * builds a form element(s) to allow the user to select users to send
- * an email to
+ * an email to.
  */
 function workbench_email_form_node_form_alter(&$form, $form_state) {  
   if (workbench_moderation_node_type_moderated($form['type']['#value'])) {
@@ -145,7 +145,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
 }
 
 /**
- *  Ajax callback function, targets the workflow_email container
+ *  Ajax callback function, targets the workflow_email container.
  *
  * @param $form
  *   The form object
@@ -184,10 +184,8 @@ function workbench_email_send_notification_submit($form, &$form_state) {
 }
 
 /**
- * workbench_email_mail_send
- *
  * Determines the emails attributes, sets the emails subject / message
- * and sends the email
+ * and sends the email.
  *
  * @param $email
  *   The send to email address
@@ -247,7 +245,7 @@ function workbench_email_mail($key, &$message, $params) {
 }
 
 /**
- * Determines the valid roles for a given moderation task and content type(s)
+ * Determines the valid roles for a given moderation task and content type(s).
  *
  * @param $moderation_task
  *   The moderation task type
@@ -303,7 +301,7 @@ function workbench_email_determine_valid_roles($moderation_task, $content_types 
 }
 
 /**
- * Determines the valid roles for a given transition
+ * Determines the valid roles for a given transition.
  *
  * @param $from_state
  *   The transition from_state
@@ -346,7 +344,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
 
 /**
  * Determines the email attributes to retrieve based off the
- * transtion, rid and node type
+ * transtion, rid and node type.
  *
  * @param $transition
  *   The transtion object
@@ -370,7 +368,7 @@ function workbench_email_get_email($transition, $rid = 0) {
 }
 
 /**
- * Saves the email into the table
+ * Saves the email into the table.
  *
  * @param $transition
  *   The transtion object
@@ -398,7 +396,7 @@ function workbench_email_save($transition, $rid, $subject, $message) {
 }
 
 /**
- * Deletes the email from the table
+ * Deletes the email from the table.
  *
  * @param $transition
  *   The transition object
@@ -418,7 +416,8 @@ function workbench_email_delete($transition, $rid) {
 }
 
 /**
- * Returns all email transitions, or returns all given a transition and / or rid
+ * Returns all email transitions, or returns all given a
+ * transition and / or rid.
  *
  * @param $transition
  *   The transition object
@@ -490,7 +489,7 @@ function workbench_email_transition_delete($transition, $rid) {
 
 /**
  * Creates the appropriate multi select list for a given role and stores
- * some email transition information into the form element
+ * some email transition information into the form element.
  *
  * @param &$form
  *   The form object passed by reference
@@ -525,7 +524,7 @@ function workbench_email_create_form_element(&$form, $params) {
 }
 
 /**
- * Returns user array if they have a certain role
+ * Returns user array if they have a certain role.
  *
  * @param $rid
  *   The role ID
