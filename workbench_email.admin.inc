@@ -15,7 +15,7 @@
  * @param $form_state
  *   The form_state object
  *
- * @return $form
+ * @return form
  *   Returns the form array
  */
 function workbench_email_form($form, &$form_state) {
@@ -89,7 +89,8 @@ function workbench_email_form($form, &$form_state) {
   else {
     drupal_set_message(t('No email transitions have been defined yet. Visit the
                          <a href="@url"> email transition configuration page</a>',
-                          array('@url' =>
+                          array(
+                                '@url' =>
                                 url('admin/config/workbench/moderation/email-transitions'))), 'warning');
     $form['#disabled'] = TRUE;
   }
@@ -166,7 +167,7 @@ function workbench_email_form_submit($form, &$form_state) {
  * @param $form_state
  *   The form_state object
  *
- * @return $form
+ * @return form
  *   A ready form array
  */
 function workbench_email_transitions_form($form, &$form_state) {
@@ -271,7 +272,9 @@ function theme_workbench_email_transitions_form($variables) {
     }
     $rows[] = $row;
   }
-  $output = theme('table', array('header' => $header, 'rows' => $rows,
+  $output = theme('table', array(
+                                 'header' => $header,
+                                 'rows' => $rows,
                                  'attributes' => array('class' => array('width-auto'))));
   $output .= drupal_render_children($form);
 
@@ -296,7 +299,7 @@ function workbench_email_transitions_form_submit($form, &$form_state) {
         if ($transition[$role]) {
           workbench_email_transition_save($transition['transition'], $rid, $role);
         }
-        else{
+        else {
           workbench_email_transition_delete($transition['transition'], $rid, $role);
         }
       }
