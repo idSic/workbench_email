@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Install file for the Workbench Email module.
+ */
 
 /**
  * Implementation of hook_schema

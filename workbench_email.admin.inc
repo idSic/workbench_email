@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Administrative forms for Workbench Email Module
+ */
 
 /**
  * workbench_email_moderation_email_form
@@ -10,7 +14,7 @@ function workbench_email_form($form, &$form_state) {
   foreach ($email_transitions AS $transition_label => $email_transition_set) {
     $form[$transition_label] = array(
       '#type' => 'fieldset',
-      '#title' => t(ucwords(str_replace('_', ' ', $transition_label))),
+      '#title' => check_plain(t(ucwords(str_replace('_', ' ', $transition_label)))),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
@@ -31,7 +35,7 @@ function workbench_email_form($form, &$form_state) {
           
       $form[$transition_label][$rid] = array(
         '#type' => 'fieldset',
-        '#title' => t('Email ' . ucwords($role->name)),
+        '#title' => check_plain(t('Email ' . ucwords($role->name))),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
@@ -131,7 +135,7 @@ function workbench_email_form_submit($form, &$form_state) {
       }
     }
   }
-  drupal_set_message("Email's have been updated");
+  drupal_set_message(t("Email's have been updated"));
 }
 
 /**
@@ -181,7 +185,7 @@ function workbench_email_transitions_form($form, &$form_state) {
       $email_transition = workbench_email_get_email_transitions($transition, $rid);
       $element[$role] = array(
         '#type' => 'checkbox',
-        '#title' => t(ucwords($role)),
+        '#title' => check_plain(t(ucwords($role))),
         '#title_display' => 'invisible',
         '#default_value' => $email_transition ? TRUE : FALSE,
       );
@@ -227,7 +231,7 @@ function theme_workbench_email_transitions_form($variables) {
     $row['data'][] = '--&gt;';
     $row['data']['to'] = drupal_render($element['to_name']);
     foreach ($roles AS $rid => $role) {
-      if(strpos($role, 'admin') === FALSE){
+      if (strpos($role, 'admin') === FALSE) {
         $row['data'][$role] = drupal_render($element[$role]);
       }
     }
@@ -257,5 +261,5 @@ function workbench_email_transitions_form_submit($form, &$form_state) {
       }
     }
   }
-  drupal_set_message('Email transitions have been updated');
+  drupal_set_message(t('Email transitions have been updated'));
 }

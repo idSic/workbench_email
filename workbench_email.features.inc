@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Features file for Workbench Email Module
+ */
 
 /**
  * Implements COMPONENT_features_export_options().

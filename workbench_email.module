@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Code for the Workbench Email.
+ * Code for the Workbench Email Module.
  */
 
 /**
@@ -129,7 +129,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
     
     $email_transitions = workbench_email_get_email_transitions();  
     foreach ($email_transitions AS $transition => $email_roles) {
-      foreach ($email_roles AS $rid => $email_transition){
+      foreach ($email_roles AS $rid => $email_transition) {
         if ($email_transition->from_name == $current_from_state
             && $email_transition->to_name == $form_moderation_state) {
           $params->rid = $rid;
@@ -184,8 +184,8 @@ function workbench_email_mail_send($email, $email_identifiers, $form_state) {
   $from = variable_get('site_mail', 'admin@example.com');
   $email_attributes = workbench_email_get_email($email_identifiers, $email_identifiers->rid);
   if (empty($email_attributes)) {
-    drupal_set_message('No email template is set, so no email was sent.
-                       Contact your system admin to resolve this issue.');
+    drupal_set_message(t('No email template is set, so no email was sent.
+                       Contact your system admin to resolve this issue.'));
     return;
   }
   
@@ -265,7 +265,7 @@ function workbench_email_determine_valid_roles($moderation_task, $content_types 
                                             array_keys(array_filter($permissions)));
     }
     if (empty($recommended_permissions)) {
-    	$valid_roles[$rid] = $role;
+      $valid_roles[$rid] = $role;
     }    
   }  
   return $valid_roles;
@@ -295,7 +295,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
     )));
 
     foreach ($actual_permissions as $permissions) {      
-      if(isset($permissions[$transition])){
+      if (isset($permissions[$transition])) {
         $valid_roles[$rid] = $role; 
       }
     }        
@@ -456,7 +456,7 @@ function workbench_email_features_api() {
       'default_hook' => 'workbench_email_export_email_transitions',
       'feature_source' => TRUE,
       'default_file' => FEATURES_DEFAULTS_INCLUDED,
-      'file' => drupal_get_path('module', 'workbench_email') .'/workbench_email.features.inc',
+      'file' => drupal_get_path('module', 'workbench_email') . '/workbench_email.features.inc',
     ),
   );
 }
