@@ -49,9 +49,10 @@ function workbench_email_theme() {
 function workbench_email_help($path, $arg) {
   switch ($path) {
     case 'admin/config/workbench/moderation/email-transitions':
-      return '<p>' . t("The Workbench Moderation Email module keeps track of when a node moves
-                       from one state to another. This admin page can help you manage who gets
-                       emailed when those transitions happen.") . '</p>';
+      return '<p>' . t("The Workbench Moderation Email module keeps track of
+                       when a node moves from one state to another. This admin
+                       page can help you manage who gets emailed when those
+                       transitions happen.") . '</p>';
   } 
 }
 
@@ -62,7 +63,8 @@ function workbench_email_permission() {
   $permissions = array();  
   $permissions['administer workbench moderation emails'] = array(
     'title' => t('Administer Workbench Moderation Emails'), 
-    'description' => t('Perform administration tasks related to Workbench Moderation emails.'),
+    'description' => t('Perform administration tasks
+                       related to Workbench Moderation emails.'),
   );
   return $permissions;
 }
@@ -128,7 +130,8 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
     $email_transitions = workbench_email_get_email_transitions();  
     foreach ($email_transitions AS $transition => $email_roles) {
       foreach ($email_roles AS $rid => $email_transition){
-        if ($email_transition->from_name == $current_from_state && $email_transition->to_name == $form_moderation_state) {
+        if ($email_transition->from_name == $current_from_state
+            && $email_transition->to_name == $form_moderation_state) {
           $params->rid = $rid;
           workbench_email_create_form_element($form, $params);
         }
@@ -181,7 +184,8 @@ function workbench_email_mail_send($email, $email_identifiers, $form_state) {
   $from = variable_get('site_mail', 'admin@example.com');
   $email_attributes = workbench_email_get_email($email_identifiers, $email_identifiers->rid);
   if (empty($email_attributes)) {
-    drupal_set_message('No email template is set, so no email was sent. Contact your system admin to resolve this issue.');
+    drupal_set_message('No email template is set, so no email was sent.
+                       Contact your system admin to resolve this issue.');
     return;
   }
   
@@ -197,7 +201,8 @@ function workbench_email_mail_send($email, $email_identifiers, $form_state) {
     drupal_set_message(t('Your message has been sent.'));
   }
   else {
-    drupal_set_message(t('There was a problem sending your message and it was not sent.'), 'error');
+    drupal_set_message(t('There was a problem sending your
+                         message and it was not sent.'), 'error');
   }
 }
 
@@ -256,7 +261,8 @@ function workbench_email_determine_valid_roles($moderation_task, $content_types 
     $recommended_permissions = workbench_moderation_recommended_permissions($content_types);
     $recommended_permissions = $recommended_permissions[$moderation_task];
     foreach ($actual_permissions as $permissions) {
-      $recommended_permissions = array_diff($recommended_permissions, array_keys(array_filter($permissions)));
+      $recommended_permissions = array_diff($recommended_permissions,
+                                            array_keys(array_filter($permissions)));
     }
     if (empty($recommended_permissions)) {
     	$valid_roles[$rid] = $role;
@@ -300,7 +306,8 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
 /**
  * workbench_email_get_email_per_transition_and_role
  *
- * Determines the email attributes to retrieve based off the transtion, rid and node type
+ * Determines the email attributes to retrieve based off the
+ * transtion, rid and node type
  */
 function workbench_email_get_email($transition, $rid = 0) {
   $email = array();  
@@ -321,8 +328,11 @@ function workbench_email_get_email($transition, $rid = 0) {
  */
 function workbench_email_save($transition, $rid, $subject, $message) {
   return db_merge('workbench_emails')
-    ->key(array('from_name' => $transition->from_name, 'to_name' => $transition->to_name, 'rid' => $rid))
-    ->fields(array('from_name' => $transition->from_name, 'to_name' => $transition->to_name, 'rid' => $rid, 'subject' => $subject, 'message' => $message))
+    ->key(array('from_name' => $transition->from_name,
+                'to_name' => $transition->to_name, 'rid' => $rid))
+    ->fields(array('from_name' => $transition->from_name,
+                   'to_name' => $transition->to_name, 'rid' => $rid,
+                   'subject' => $subject, 'message' => $message))
     ->execute();  
 }
 
@@ -367,8 +377,10 @@ function workbench_email_get_email_transitions($transition = NULL, $rid = NULL) 
  */
 function workbench_email_transition_save($transition, $rid) {
   return db_merge('workbench_email_transitions')
-    ->key(array('from_name' => $transition->from_name, 'to_name' => $transition->to_name, 'rid' => $rid))
-    ->fields(array('from_name' => $transition->from_name, 'to_name' => $transition->to_name, 'rid' => $rid))
+    ->key(array('from_name' => $transition->from_name,
+                'to_name' => $transition->to_name, 'rid' => $rid))
+    ->fields(array('from_name' => $transition->from_name,
+                   'to_name' => $transition->to_name, 'rid' => $rid))
     ->execute();  
 }
 

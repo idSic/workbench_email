@@ -74,9 +74,10 @@ function workbench_email_form($form, &$form_state) {
     );
   }
   else {    
-    drupal_set_message(t('No email transitions have been defined yet.
-                          Visit the <a href="@url"> email transition configuration page</a>',
-                          array('@url' => url('admin/config/workbench/moderation/email-transitions'))), 'warning');
+    drupal_set_message(t('No email transitions have been defined yet. Visit the
+                         <a href="@url"> email transition configuration page</a>',
+                          array('@url' =>
+                                url('admin/config/workbench/moderation/email-transitions'))), 'warning');
     $form['#disabled'] = TRUE; 
   }
   
@@ -95,12 +96,16 @@ function workbench_email_form_validate($form, &$form_state) {
       if (isset($form_state['values'][$transition_label])) {
         $role = user_role_load($email_transition->rid);
         //determine if subject is set with no message
-        if ($form_state['values'][$transition_label][$rid]['subject'] != NULL && $form_state['values'][$transition_label][$rid]['message'] == NULL) {
-          form_set_error("$transition_label][$rid][message", 'You must add an email message if a subject is provided');
+        if ($form_state['values'][$transition_label][$rid]['subject'] != NULL
+            && $form_state['values'][$transition_label][$rid]['message'] == NULL) {
+          form_set_error("$transition_label][$rid][message",
+                         'You must add an email message if a subject is provided');
         }
         //determine if message is set with no subject
-        if ($form_state['values'][$transition_label][$rid]['subject'] == NULL && $form_state['values'][$transition_label][$rid]['message'] != NULL) {
-          form_set_error("$transition_label][$rid][subject", 'You must add a subject if an email message is provided');
+        if ($form_state['values'][$transition_label][$rid]['subject'] == NULL
+            && $form_state['values'][$transition_label][$rid]['message'] != NULL) {
+          form_set_error("$transition_label][$rid][subject",
+                         'You must add a subject if an email message is provided');
         }
       }
     }
@@ -139,9 +144,9 @@ function workbench_email_transitions_form($form, &$form_state) {
   $roles = workbench_email_determine_valid_roles('author');
   
   if (!$types) {
-    drupal_set_message(t('Moderation is not enabled for any content types.
-                         Visit the <a href="@url"> content type administration page</a> to enable moderation
-                         for one or more types.',
+    drupal_set_message(t('Moderation is not enabled for any content types. Visit
+                         the <a href="@url"> content type administration
+                         page</a> to enable moderation for one or more types.',
                          array('@url' => url('admin/structure/types'))), 'warning');
     $form['#disabled'] = TRUE;    
   }
@@ -228,7 +233,8 @@ function theme_workbench_email_transitions_form($variables) {
     }
     $rows[] = $row;
   }
-  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('class' => array('width-auto'))));
+  $output = theme('table', array('header' => $header, 'rows' => $rows,
+                                 'attributes' => array('class' => array('width-auto'))));
   $output .= drupal_render_children($form);
 
   return $output;
