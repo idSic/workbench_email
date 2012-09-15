@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_menu
+ * Implements hook_menu
  */
 function workbench_email_menu() {
   $items = array();
@@ -32,7 +32,7 @@ function workbench_email_menu() {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function workbench_email_theme() {
   return array(
@@ -44,7 +44,7 @@ function workbench_email_theme() {
 }
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function workbench_email_help($path, $arg) {
   switch ($path) {
@@ -57,7 +57,7 @@ function workbench_email_help($path, $arg) {
 }
 
 /**
- * Implementation of hook_permission
+ * Implements hook_permission
  */
 function workbench_email_permission() {
   $permissions = array();  
@@ -70,7 +70,7 @@ function workbench_email_permission() {
 }
 
 /**
- * Implementation hook_form_alter
+ * Implements hook_form_alter
  *
  * Determines the current state and next state. Depending on that criteria
  * builds a form element(s) to allow the user to select users to send
@@ -145,9 +145,14 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
 }
 
 /**
- *  workbench_email_form_node_callback
- *
  *  Ajax callback function, targets the workflow_email container
+ *
+ * @param $form
+ *   The form object
+ *
+ * @param $form_state
+ *   The form_state object
+ *   
  */
 function workbench_email_form_node_callback($form, $form_state) {
   return $form['revision_information']['workflow_email'];
@@ -225,7 +230,7 @@ function workbench_email_mail_send($email, $email_transition, $form_state) {
 }
 
 /**
- * Implementation of hook_mail().
+ * Implements hook_mail().
  * 
  */
 function workbench_email_mail($key, &$message, $params) {
@@ -548,7 +553,7 @@ function workbench_email_get_users($rid) {
 }
 
 /**
- * Implementation of hook_features_api().
+ * Implements hook_features_api().
  */
 function workbench_email_features_api() {
   return array(
