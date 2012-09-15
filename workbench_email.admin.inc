@@ -5,9 +5,18 @@
  */
 
 /**
- * workbench_email_moderation_email_form
- *
  * Form for administering the email content
+ *
+ * Administrators can use this form to add, update, delete emails
+ *
+ * @param $form
+ *   The form object
+ *
+ * @param $form_state
+ *   The form_state object
+ *
+ * @return $form
+ *   Returns the form array
  */
 function workbench_email_form($form, &$form_state) {
   $email_transitions = workbench_email_get_email_transitions();  
@@ -67,7 +76,7 @@ function workbench_email_form($form, &$form_state) {
     
     $form['token_set']['tokens'] = array(
       '#theme' => 'token_tree',
-      '#token_types' => array('node','user'), 
+      '#token_types' => array('node', 'user'), 
       '#global_types' => TRUE, 
       '#click_insert' => TRUE, 
     );
@@ -89,9 +98,15 @@ function workbench_email_form($form, &$form_state) {
 }
 
 /**
- * workbench_email_form_validate
- *
  * Validates the form values
+ *
+ * Validates if the user has entered a valid subject / message for the emails
+ *
+ * @param $form
+ *   The form object
+ *
+ * @param $form_state
+ *   The form_state object
  */
 function workbench_email_form_validate($form, &$form_state) {
   $email_transitions = workbench_email_get_email_transitions();  
@@ -117,9 +132,13 @@ function workbench_email_form_validate($form, &$form_state) {
 }
 
 /**
- * workbench_email_form_submit
+ * Submit function for the form, saves or deletes emails
  *
- * Submit function for the form, saves or deletes information
+ * @param $form
+ *   The form object
+ *
+ * @param $form_state
+ *   The form_state object
  */
 function workbench_email_form_submit($form, &$form_state) {
   $email_transitions = workbench_email_get_email_transitions();  
@@ -140,6 +159,15 @@ function workbench_email_form_submit($form, &$form_state) {
 
 /**
  * Administration form to create and delete email transitions.
+ *
+ * @param $form
+ *   The form object
+ *
+ * @param $form_state
+ *   The form_state object
+ *
+ * @return $form
+ *   A ready form array
  */
 function workbench_email_transitions_form($form, &$form_state) {
   // List existing states.
@@ -204,6 +232,12 @@ function workbench_email_transitions_form($form, &$form_state) {
 
 /**
  * Transforms the email transitions administration form into a table.
+ *
+ * @param $variables
+ *   The form array to render into a table
+ *
+ * @return $output
+ *   A rendered form in table structure
  */
 function theme_workbench_email_transitions_form($variables) {
   $form = $variables['form'];
@@ -245,7 +279,14 @@ function theme_workbench_email_transitions_form($variables) {
 }
 
 /**
- * Form submit handler for email transitions.
+ * Form submit handler for email transitions. Adds or deletes email
+ * transitions depending on user input
+ *
+ * @param $form
+ *   The form object
+ *
+ * @param $form_state
+ *   The form_state object
  */
 function workbench_email_transitions_form_submit($form, &$form_state) {
   $roles = workbench_email_determine_valid_roles('author');

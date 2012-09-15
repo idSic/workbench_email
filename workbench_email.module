@@ -32,7 +32,7 @@ function workbench_email_menu() {
 }
 
 /**
- * Implements hook_theme().
+ * Implementation of hook_theme().
  */
 function workbench_email_theme() {
   return array(
@@ -44,7 +44,7 @@ function workbench_email_theme() {
 }
 
 /**
- * Implements hook_help().
+ * Implementation of hook_help().
  */
 function workbench_email_help($path, $arg) {
   switch ($path) {
@@ -72,7 +72,9 @@ function workbench_email_permission() {
 /**
  * Implementation hook_form_alter
  *
- * Checks if moderation is enabled, if so adds the appropriate email form elements
+ * Determines the current state and next state. Depending on that criteria
+ * builds a form element(s) to allow the user to select users to send
+ * an email to
  */
 function workbench_email_form_node_form_alter(&$form, $form_state) {  
   if (workbench_moderation_node_type_moderated($form['type']['#value'])) {
@@ -145,7 +147,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
 /**
  *  workbench_email_form_node_callback
  *
- *  For the ajax callback
+ *  Ajax callback function, targets the workflow_email container
  */
 function workbench_email_form_node_callback($form, $form_state) {
   return $form['revision_information']['workflow_email'];
@@ -153,6 +155,9 @@ function workbench_email_form_node_callback($form, $form_state) {
 
 
 /**
+ * Submit handler for the workflow_email form element
+ *
+ * Saves the new transition state
  * Sends emails to the specific users selected in the form element
  */
 function workbench_email_send_notification_submit($form, &$form_state) {
@@ -167,22 +172,35 @@ function workbench_email_send_notification_submit($form, &$form_state) {
   
   if (isset($form_state['values']['workflow_email'])) {
     foreach ($form_state['values']['workflow_email'] AS $rid => $email) {
-      $email_identifiers = $form['revision_information']['workflow_email'][$rid]['#hidden'];
-      workbench_email_mail_send(array_shift($email), $email_identifiers, $form_state);
+      $email_transition = $form['revision_information']['workflow_email'][$rid]['#hidden'];
+      workbench_email_mail_send(array_shift($email), $email_transition, $form_state);
     }
   }
 }
 
 /**
- * Sends an e-mail.
+ * workbench_email_mail_send
+ *
+ * Determines the emails attributes, sets the emails subject / message
+ * and sends the email
+ *
+ * @param $email
+ *   The send to email address
+ *
+ * @param $email_transition
+ *   The email transition used for determining the subject / message
+ *   to retrieve
+ *
+ * @param $form_state
+ *   The submitted forms form_state variable
  */
-function workbench_email_mail_send($email, $email_identifiers, $form_state) {
+function workbench_email_mail_send($email, $email_transition, $form_state) {
   $module = 'workbench_email';
   $key = 'workflow_email';
 
   $to = $email;
   $from = variable_get('site_mail', 'admin@example.com');
-  $email_attributes = workbench_email_get_email($email_identifiers, $email_identifiers->rid);
+  $email_attributes = workbench_email_get_email($email_transition, $email_transition->rid);
   if (empty($email_attributes)) {
     drupal_set_message(t('No email template is set, so no email was sent.
                        Contact your system admin to resolve this issue.'));
@@ -207,7 +225,8 @@ function workbench_email_mail_send($email, $email_identifiers, $form_state) {
 }
 
 /**
- * Implement hook_mail().
+ * Implementation of hook_mail().
+ * 
  */
 function workbench_email_mail($key, &$message, $params) {
   global $user;
@@ -223,9 +242,16 @@ function workbench_email_mail($key, &$message, $params) {
 }
 
 /**
- * workbench_email_determine_valid_roles
- *
  * Determines the valid roles for a given moderation task and content type(s)
+ *
+ * @param $moderation_task
+ *   The moderation task type
+ *
+ * @param $content_types
+ *   The content types to check permissions against
+ *
+ * @return
+ *   Returns the valid roles or an empty array
  */
 function workbench_email_determine_valid_roles($moderation_task, $content_types = array()) {
   $valid_roles = array();
@@ -272,9 +298,19 @@ function workbench_email_determine_valid_roles($moderation_task, $content_types 
 }
 
 /**
- * workbench_email_determine_valid_roles_per_transition
- * 
  * Determines the valid roles for a given transition
+ *
+ * @param $from_state
+ *   The transition from_state
+ *  
+ * @param $to_state
+ *   The transition to_state
+ *   
+ * @param $node_type
+ *   The node type used to determine valid roles.
+ *
+ * @return
+ *   Returns the valid roles or an empty array
  */
 function workbench_email_determine_valid_roles_per_transition($from_state, $to_state, $node_type = NULL) {
   $roles = user_roles();
@@ -304,10 +340,17 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
 }
 
 /**
- * workbench_email_get_email_per_transition_and_role
- *
  * Determines the email attributes to retrieve based off the
  * transtion, rid and node type
+ *
+ * @param $transition
+ *   The transtion object
+ *
+ * @param $rid
+ *   The role ID
+ *
+ * @return
+ *   Returns the workbench_email object or FALSE
  */
 function workbench_email_get_email($transition, $rid = 0) {
   $email = array();  
@@ -322,9 +365,22 @@ function workbench_email_get_email($transition, $rid = 0) {
 }
 
 /**
- * workbench_email_email_transition_save
- *
  * Saves the email into the table
+ *
+ * @param $transition
+ *   The transtion object
+ *
+ * @param $rid
+ *   The role ID
+ *
+ * @param $subject
+ *   The email subject to save
+ *
+ * @param $message
+ *   The email message to save
+ *
+ * @return
+ *   Returns the TRUE or FALSE
  */
 function workbench_email_save($transition, $rid, $subject, $message) {
   return db_merge('workbench_emails')
@@ -337,9 +393,16 @@ function workbench_email_save($transition, $rid, $subject, $message) {
 }
 
 /**
- * workbench_email_email_delete
+ * Deletes the email from the table
  *
- * Deletes the email into the table
+ * @param $transition
+ *   The transition object
+ *
+ * @param $rid
+ *   The role ID
+ *
+ * @return
+ *   Returns TRUE or FALSE
  */
 function workbench_email_delete($transition, $rid) {
   db_delete('workbench_emails')
@@ -350,9 +413,16 @@ function workbench_email_delete($transition, $rid) {
 }
 
 /**
- * workbench_email_get_email_transitions
- *
  * Returns all email transitions, or returns all given a transition and / or rid
+ *
+ * @param $transition
+ *   The transition object
+ *
+ * @param $rid
+ *   The role ID
+ *
+ * @return
+ *   Returns the email_transition object or FALSE
  */
 function workbench_email_get_email_transitions($transition = NULL, $rid = NULL) {
   $emails_transitions = array();
@@ -374,6 +444,15 @@ function workbench_email_get_email_transitions($transition = NULL, $rid = NULL) 
 
 /**
  * Saves a moderation email state transition.
+ *
+ * @param $transition
+ *   The transition object
+ *
+ * @param $rid
+ *   The role ID
+ *
+ * @return
+ *   Returns TRUE or FALSE
  */
 function workbench_email_transition_save($transition, $rid) {
   return db_merge('workbench_email_transitions')
@@ -386,9 +465,18 @@ function workbench_email_transition_save($transition, $rid) {
 
 /**
  * Deletes a moderation email state transition.
+ *
+ * @param $transition
+ *   The transition object
+ *
+ * @param $rid
+ *   The role ID
+ *
+ * @return
+ *   Returns TRUE or FALSE
  */
 function workbench_email_transition_delete($transition, $rid) {
-  db_delete('workbench_email_transitions')
+  return db_delete('workbench_email_transitions')
     ->condition('from_name', $transition->from_name)
     ->condition('to_name', $transition->to_name)
     ->condition('rid', $rid)
@@ -396,7 +484,14 @@ function workbench_email_transition_delete($transition, $rid) {
 }
 
 /**
- * Creates the appropriate select list for a given role
+ * Creates the appropriate multi select list for a given role and stores
+ * some email transition information into the form element
+ *
+ * @param &$form
+ *   The form object passed by reference
+ *
+ * @param $params
+ *   A object containing information relating to the email transition 
  */ 
 function workbench_email_create_form_element(&$form, $params) {
   $users = workbench_email_get_users($params->rid);
@@ -426,6 +521,12 @@ function workbench_email_create_form_element(&$form, $params) {
 
 /**
  * Returns user array if they have a certain role
+ *
+ * @param $rid
+ *   The role ID
+ *
+ * @return
+ *   Returns an array of users or an empty array
  */
 function workbench_email_get_users($rid) {
   $uids = array();
@@ -447,7 +548,7 @@ function workbench_email_get_users($rid) {
 }
 
 /**
- * Implements hook_features_api().
+ * Implementation of hook_features_api().
  */
 function workbench_email_features_api() {
   return array(
