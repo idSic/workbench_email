@@ -152,7 +152,6 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
  *
  * @param $form_state
  *   The form_state object
- *
  */
 function workbench_email_form_node_callback($form, $form_state) {
   return $form['revision_information']['workflow_email'];
@@ -229,7 +228,6 @@ function workbench_email_mail_send($email, $email_transition, $form_state) {
 
 /**
  * Implements hook_mail().
- *
  */
 function workbench_email_mail($key, &$message, $params) {
   global $user;
@@ -387,9 +385,11 @@ function workbench_email_get_email($transition, $rid = 0) {
  */
 function workbench_email_save($transition, $rid, $subject, $message) {
   return db_merge('workbench_emails')
-    ->key(array('from_name' => $transition->from_name,
+    ->key(array(
+                'from_name' => $transition->from_name,
                 'to_name' => $transition->to_name, 'rid' => $rid))
-    ->fields(array('from_name' => $transition->from_name,
+    ->fields(array(
+                   'from_name' => $transition->from_name,
                    'to_name' => $transition->to_name, 'rid' => $rid,
                    'subject' => $subject, 'message' => $message))
     ->execute();
@@ -431,7 +431,8 @@ function workbench_email_delete($transition, $rid) {
 function workbench_email_get_email_transitions($transition = NULL, $rid = NULL) {
   $emails_transitions = array();
   $query = db_select('workbench_email_transitions', 'wve')
-    ->fields('wve', array('from_name', 'to_name', 'rid'));
+    ->fields('wve', array(
+                          'from_name', 'to_name', 'rid'));
   if ($transition) {
     $query->condition('wve.from_name', $transition->from_name);
     $query->condition('wve.to_name', $transition->to_name);
@@ -460,9 +461,11 @@ function workbench_email_get_email_transitions($transition = NULL, $rid = NULL) 
  */
 function workbench_email_transition_save($transition, $rid) {
   return db_merge('workbench_email_transitions')
-    ->key(array('from_name' => $transition->from_name,
+    ->key(array(
+                'from_name' => $transition->from_name,
                 'to_name' => $transition->to_name, 'rid' => $rid))
-    ->fields(array('from_name' => $transition->from_name,
+    ->fields(array(
+                   'from_name' => $transition->from_name,
                    'to_name' => $transition->to_name, 'rid' => $rid))
     ->execute();
 }
