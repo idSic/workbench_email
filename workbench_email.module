@@ -101,7 +101,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       '#tree' => TRUE,
     );
 
-    //determine current state
+    // Determine current state.
     if (isset($form['#node']->workbench_moderation['current']->state)) {
       $current_from_state = $form['#node']->workbench_moderation['current']->state;
     }
@@ -112,7 +112,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       $current_from_state = workbench_moderation_state_none();
     }
 
-    //determine form next state for the ajax
+    // Determine form next state for the ajax.
     if (empty($form_state['values'])) {
       $form_moderation_state = $current_from_state;
     }
@@ -123,7 +123,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       $form_moderation_state = $form_state['values']['revision_information']['workbench_moderation_state_new'];
     }
 
-    //determine transition
+    // Determine transition.
     $params = new stdClass();
     $params->from_name = $current_from_state;
     $params->to_name = $form_moderation_state;
@@ -166,7 +166,7 @@ function workbench_email_form_node_callback($form, $form_state) {
  * Sends emails to the specific users selected in the form element
  */
 function workbench_email_send_notification_submit($form, &$form_state) {
-  //without this the state transition never gets saved
+  // Without this the state transition never gets saved.
   if (isset($_REQUEST['workbench_moderation_state_new'])) {
     $form_state['values']['revision_information']['workbench_moderation_state_new'] = $_REQUEST['workbench_moderation_state_new'];
     $form_state['values']['workbench_moderation_state_new'] = $_REQUEST['workbench_moderation_state_new'];
@@ -534,20 +534,15 @@ function workbench_email_create_form_element(&$form, $params) {
  */
 function workbench_email_get_users($rid) {
   $uids = array();
-
-  // Use $query for readability
   $query = 'SELECT DISTINCT(ur.uid)
     FROM {users_roles} as ur
     WHERE ur.rid IN (:rids)';
   $result = db_query($query, array(':rids' => $rid));
-
   foreach ($result as $row) {
     $uids[] = $row->uid;
   }
-
   $users = array();
   $users = user_load_multiple($uids);
-
   return $users;
 }
 

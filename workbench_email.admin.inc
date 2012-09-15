@@ -32,7 +32,7 @@ function workbench_email_form($form, &$form_state) {
       $email = workbench_email_get_email($email_transition, $rid);
       $subject = ''; $message = ''; $send_email = 0;
       if ($email) {
-        //add default values for these fields
+        // Add default values for these fields.
         $subject = $email->subject;
         $message = $email->message;
       }
@@ -114,13 +114,13 @@ function workbench_email_form_validate($form, &$form_state) {
     foreach ($email_transition_set as $rid => $email_transition) {
       if (isset($form_state['values'][$transition_label])) {
         $role = user_role_load($email_transition->rid);
-        //determine if subject is set with no message
+        // Determine if subject is set with no message.
         if ($form_state['values'][$transition_label][$rid]['subject'] != NULL
             && $form_state['values'][$transition_label][$rid]['message'] == NULL) {
           form_set_error("$transition_label][$rid][message",
                          'You must add an email message if a subject is provided');
         }
-        //determine if message is set with no subject
+        // Determine if message is set with no subject.
         if ($form_state['values'][$transition_label][$rid]['subject'] == NULL
             && $form_state['values'][$transition_label][$rid]['message'] != NULL) {
           form_set_error("$transition_label][$rid][subject",
