@@ -9,8 +9,8 @@ function workbench_email_transitions_features_export_options() {
   $options = array();
 
   $email_transitions = workbench_email_get_email_transitions();
-  foreach($email_transitions AS $transition_label => $email_transition_set){
-    foreach($email_transition_set AS $rid => $email_transition){
+  foreach ($email_transitions AS $transition_label => $email_transition_set) {
+    foreach ($email_transition_set AS $rid => $email_transition) {
       $role = user_role_load_by_name($rid);
       $options[$email_transition->from_name . ':' . $email_transition->to_name . '::' . str_replace('_', ' ', strtolower($role->name))] = $role->name . ': ' . $email_transition->from_name . ' to ' . $email_transition->to_name;
     }
