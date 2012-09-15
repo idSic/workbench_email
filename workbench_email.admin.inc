@@ -6,7 +6,6 @@
  * Form for administering the email content
  */
 function workbench_email_form($form, &$form_state){
-  $form['#tree'] = TRUE;
   $email_transitions = workbench_email_get_email_transitions();  
   foreach($email_transitions AS $transition_label => $email_transition_set){
     $form[$transition_label] = array(
@@ -24,26 +23,27 @@ function workbench_email_form($form, &$form_state){
         $subject = $email->subject;
         $message = $email->message;        
       }
+      $role = user_role_load($rid);
       $params['rid'] = $rid;
-      $params['role'] = $email_transition->role;
+      $params['role'] = $role->name;
       $params['from_state'] = $email_transition->from_name;
       $params['to_state'] = $email_transition->to_name;
           
-      $form[$transition_label][$email_transition->role] = array(
+      $form[$transition_label][$rid] = array(
         '#type' => 'fieldset',
-        '#title' => t('Email ' . ucwords($email_transition->role)),
+        '#title' => t('Email ' . ucwords($role->name)),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
           
-      $form[$transition_label][$email_transition->role]['subject'] = array(
+      $form[$transition_label][$rid]['subject'] = array(
         '#type' => 'textfield',
         '#default_value' => $subject,
         '#title' => 'Subject',
         '#maxlength' => 255,
       );
             
-      $form[$transition_label][$email_transition->role]['message'] = array(
+      $form[$transition_label][$rid]['message'] = array(
         '#type' => 'textarea',
         '#default_value' => $message,
         '#title' => 'Message',
@@ -52,23 +52,33 @@ function workbench_email_form($form, &$form_state){
     }
   }
   
-  $form['token_set'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Available Tokens'),
-    '#collapsible' => TRUE,
-  );  
-  
-  $form['token_set']['tokens'] = array(
-    '#theme' => 'token_tree',
-    '#token_types' => array('node','user'), 
-    '#global_types' => TRUE, 
-    '#click_insert' => TRUE, 
-  );
-  
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );  
+  if($email_transitions){
+    $form['#tree'] = TRUE;
+    
+    $form['token_set'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Available Tokens'),
+      '#collapsible' => TRUE,
+    );  
+    
+    $form['token_set']['tokens'] = array(
+      '#theme' => 'token_tree',
+      '#token_types' => array('node','user'), 
+      '#global_types' => TRUE, 
+      '#click_insert' => TRUE, 
+    );
+    
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Submit'),
+    );
+  }
+  else{    
+    drupal_set_message(t('No email transitions have been defined yet.
+                          Visit the <a href="@url"> email transition configuration page</a>',
+                          array('@url' => url('admin/config/workbench/moderation/email-transitions'))), 'warning');
+    $form['#disabled'] = TRUE; 
+  }
   
   return $form;
 }
@@ -83,13 +93,14 @@ function workbench_email_form_validate($form, &$form_state){
   foreach($email_transitions AS $transition_label => $email_transition_set){
     foreach($email_transition_set AS $rid => $email_transition){
       if(isset($form_state['values'][$transition_label])){
+        $role = user_role_load($email_transition->rid);
         //determine if subject is set with no message
-        if($form_state['values'][$transition_label][$email_transition->role]['subject'] != NULL && $form_state['values'][$transition_label][$email_transition->role]['message'] == NULL){
-          form_set_error("$transition_label][$email_transition->role][message", 'You must add an email message if a subject is provided');
+        if($form_state['values'][$transition_label][$rid]['subject'] != NULL && $form_state['values'][$transition_label][$rid]['message'] == NULL){
+          form_set_error("$transition_label][$rid][message", 'You must add an email message if a subject is provided');
         }
         //determine if message is set with no subject
-        if($form_state['values'][$transition_label][$email_transition->role]['subject'] == NULL && $form_state['values'][$transition_label][$email_transition->role]['message'] != NULL){
-          form_set_error("$transition_label][$email_transition->role][subject", 'You must add a subject if an email message is provided');
+        if($form_state['values'][$transition_label][$rid]['subject'] == NULL && $form_state['values'][$transition_label][$rid]['message'] != NULL){
+          form_set_error("$transition_label][$rid][subject", 'You must add a subject if an email message is provided');
         }
       }
     }
@@ -105,8 +116,8 @@ function workbench_email_form_submit($form, &$form_state){
   $email_transitions = workbench_email_get_email_transitions();  
   foreach($email_transitions AS $transition_label => $email_transition_set){
     foreach($email_transition_set AS $rid => $email_transition){
-      $subject = $form_state['values'][$transition_label][$email_transition->role]['subject'];
-      $message = $form_state['values'][$transition_label][$email_transition->role]['message'];
+      $subject = $form_state['values'][$transition_label][$rid]['subject'];
+      $message = $form_state['values'][$transition_label][$rid]['message'];
       if($subject && $message){  
         workbench_email_save($email_transition, $rid, $subject, $message);
       }
@@ -122,13 +133,31 @@ function workbench_email_form_submit($form, &$form_state){
  * Administration form to create and delete email transitions.
  */
 function workbench_email_transitions_form($form, &$form_state) {
-  $form['transitions'] = array(
-    '#tree' => TRUE,
-  );
-
   // List existing states.
+  $types = drupal_map_assoc(workbench_moderation_moderate_node_types());
   $transitions = workbench_moderation_transitions();
-
+  $roles = workbench_email_determine_valid_roles('author');
+  
+  if(!$types){
+    drupal_set_message(t('Moderation is not enabled for any content types.
+                         Visit the <a href="@url"> content type administration page</a> to enable moderation
+                         for one or more types.',
+                         array('@url' => url('admin/structure/types'))), 'warning');
+    $form['#disabled'] = TRUE;    
+  }
+  else if(!$roles){
+    drupal_set_message(t('Moderation is not enabled for any roles. Visit the
+                         <a href="@url"> user permissions page</a> to enable moderation
+                         for one or more roles.',
+                         array('@url' => url('admin/people/permissions', array('fragment' => 'module-workbench_moderation')))), 'warning');
+    $form['#disabled'] = TRUE; 
+  }
+  else{
+    $form['transitions'] = array(
+      '#tree' => TRUE,
+    );
+  }
+  
   foreach ($transitions as $transition) {
     $element = array();
 
@@ -143,17 +172,14 @@ function workbench_email_transitions_form($form, &$form_state) {
       '#markup' => check_plain(workbench_moderation_state_label($transition->to_name)),
     );
     
-    $roles = workbench_email_determine_valid_roles('author');
     foreach($roles AS $rid => $role){
-      if(strpos($role, 'admin') === FALSE){
-        $email_transition = workbench_email_get_email_transitions($transition, $rid);
-        $element[$role] = array(
-          '#type' => 'checkbox',
-          '#title' => t(ucwords($role)),
-          '#title_display' => 'invisible',
-          '#default_value' => $email_transition ? TRUE : FALSE,
-        );
-      }
+      $email_transition = workbench_email_get_email_transitions($transition, $rid);
+      $element[$role] = array(
+        '#type' => 'checkbox',
+        '#title' => t(ucwords($role)),
+        '#title_display' => 'invisible',
+        '#default_value' => $email_transition ? TRUE : FALSE,
+      );
     }
 
     $form['transitions'][] = $element;

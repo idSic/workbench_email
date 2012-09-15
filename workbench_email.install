@@ -6,7 +6,7 @@
  */
 function workbench_email_schema() {
   $schema = array();
-  $schema['workbench_email'] = array(
+  $schema['workbench_emails'] = array(
     'description' => 'Custom table to hold moderation emails',
     'fields' => array(
       'from_name'  => array(
@@ -71,13 +71,7 @@ function workbench_email_schema() {
         'not null' => TRUE, 
         'default' => 0,
         'description' => 'The user role ID',        
-      ),
-      'role'  => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'description' => 'The user role name',
-      ),     
+      ),   
     ),
     'indexes' => array(
       'key'   => array('from_name', 'to_name', 'rid'),
@@ -92,7 +86,6 @@ function workbench_email_schema() {
  * Implementation of hook_install()
  */
 function workbench_email_install() {
-  drupal_install_schema('workbench_email');
   //place workbench email after workbench moderation
   db_update('system')
   ->fields(array('weight' => 6))

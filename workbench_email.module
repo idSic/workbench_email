@@ -13,7 +13,7 @@ function workbench_email_menu(){
   $items['admin/config/workbench/moderation/emails'] = array(
     'title' => 'Emails',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('workbench_email_email_form'),
+    'page arguments' => array('workbench_email_form'),
     'access arguments' => array('administer workflow emails'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'workbench_email.admin.inc',
@@ -130,7 +130,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state){
       foreach($email_roles AS $rid => $email_transition){
         if($email_transition->from_name == $current_from_state && $email_transition->to_name == $form_moderation_state){
           $params->rid = $rid;
-          workbench_email_create_form_element($rid, $email_transition->role, $form, $params);
+          workbench_email_create_form_element($form, $params);
         }
       }
     }
@@ -153,7 +153,7 @@ function workbench_email_form_node_callback($form, $form_state){
  * Sends emails to the specific users selected in the form element
  */
 function workbench_email_send_notification_submit($form, &$form_state){
-  //for whatever reason, workbench overrides its own form element, we make the user change stick by applying this code
+  //without this the state transition never gets saved
   if(isset($_REQUEST['workbench_moderation_state_new'])){
     $form_state['values']['revision_information']['workbench_moderation_state_new'] = $_REQUEST['workbench_moderation_state_new'];
     $form_state['values']['workbench_moderation_state_new'] = $_REQUEST['workbench_moderation_state_new'];
@@ -163,8 +163,8 @@ function workbench_email_send_notification_submit($form, &$form_state){
   }    
   
   if(isset($form_state['values']['workflow_email'])){
-    foreach($form_state['values']['workflow_email'] AS $role_name => $email){
-      $email_identifiers = $form['revision_information']['workflow_email'][$role_name]['#hidden_values'];
+    foreach($form_state['values']['workflow_email'] AS $rid => $email){
+      $email_identifiers = $form['revision_information']['workflow_email'][$rid]['#hidden'];
       workbench_email_mail_send(array_shift($email), $email_identifiers, $form_state);
     }
   }
@@ -237,8 +237,11 @@ function workbench_email_determine_valid_roles($moderation_task, $content_types 
     'publisher' => t('Publish moderated content'),
   );
   
-  $roles = user_roles();
+  $roles = user_roles(TRUE);
   foreach($roles AS $rid => $role){
+    if(strpos($role, 'admin') !== FALSE){
+      continue;
+    }
     // Get a full list of this role's permissions.
     $actual_permissions = array();
     $actual_permissions = user_role_permissions(array_filter(array(
@@ -301,7 +304,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
  */
 function workbench_email_get_email($transition, $rid = 0){
   $email = array();  
-  $query = db_select('workbench_email_emails', 'wve')
+  $query = db_select('workbench_emails', 'wve')
     ->fields('wve', array('rid', 'from_name', 'to_name', 'subject', 'message'))
     ->condition('wve.from_name', $transition->from_name)
     ->condition('wve.to_name', $transition->to_name)
@@ -317,7 +320,7 @@ function workbench_email_get_email($transition, $rid = 0){
  * Saves the email into the table
  */
 function workbench_email_save($transition, $rid, $subject, $message){
-  return db_merge('workbench_email_emails')
+  return db_merge('workbench_emails')
     ->key(array('from_name' => $transition->from_name, 'to_name' => $transition->to_name, 'rid' => $rid))
     ->fields(array('from_name' => $transition->from_name, 'to_name' => $transition->to_name, 'rid' => $rid, 'subject' => $subject, 'message' => $message))
     ->execute();  
@@ -329,7 +332,7 @@ function workbench_email_save($transition, $rid, $subject, $message){
  * Deletes the email into the table
  */
 function workbench_email_delete($transition, $rid){
-  db_delete('workbench_email_emails')
+  db_delete('workbench_emails')
     ->condition('from_name', $transition->from_name)
     ->condition('to_name', $transition->to_name)
     ->condition('rid', $rid)
@@ -343,8 +346,8 @@ function workbench_email_delete($transition, $rid){
  */
 function workbench_email_get_email_transitions($transition = NULL, $rid = NULL){
   $emails_transitions = array();
-  $query = db_select('workbench_email_email_transitions', 'wve')
-    ->fields('wve', array('from_name', 'to_name', 'rid', 'role'));
+  $query = db_select('workbench_email_transitions', 'wve')
+    ->fields('wve', array('from_name', 'to_name', 'rid'));
   if($transition){
     $query->condition('wve.from_name', $transition->from_name);
     $query->condition('wve.to_name', $transition->to_name);
@@ -362,30 +365,29 @@ function workbench_email_get_email_transitions($transition = NULL, $rid = NULL){
 /**
  * Saves a moderation email state transition.
  */
-function workbench_email_transition_save($transition, $rid, $role){
-  return db_merge('workbench_email_email_transitions')
+function workbench_email_transition_save($transition, $rid){
+  return db_merge('workbench_email_transitions')
     ->key(array('from_name' => $transition->from_name, 'to_name' => $transition->to_name, 'rid' => $rid))
-    ->fields(array('from_name' => $transition->from_name, 'to_name' => $transition->to_name, 'rid' => $rid, 'role' => $role))
+    ->fields(array('from_name' => $transition->from_name, 'to_name' => $transition->to_name, 'rid' => $rid))
     ->execute();  
 }
 
 /**
  * Deletes a moderation email state transition.
  */
-function workbench_email_transition_delete($transition, $rid, $role){
-  db_delete('workbench_email_email_transitions')
+function workbench_email_transition_delete($transition, $rid){
+  db_delete('workbench_email_transitions')
     ->condition('from_name', $transition->from_name)
     ->condition('to_name', $transition->to_name)
     ->condition('rid', $rid)
-    ->condition('role', $role)  
     ->execute();  
 }
 
 /**
  * Creates the appropriate select list for a given role
  */ 
-function workbench_email_create_form_element($rid, $role_name, &$form, $params){
-  $users = wv_site_get_users($rid);
+function workbench_email_create_form_element(&$form, $params){
+  $users = workbench_email_get_users($params->rid);
   global $user;
   if($users){
     $emails = array('0' => '- None -');
@@ -397,16 +399,39 @@ function workbench_email_create_form_element($rid, $role_name, &$form, $params){
     if(isset($form['revision_information'])){
       $weight = $form['revision_information']['#weight'];
     }
-    $form['revision_information']['workflow_email'][str_replace(' ', '_', $role_name)] = array(
+    $role = user_role_load($params->rid);
+    $form['revision_information']['workflow_email'][$role->rid] = array(
       '#type' => 'select',
-      '#title' => t(ucwords($role_name) . 's'),
+      '#title' => t(ucwords($role->name) . "'s"),
       '#options' => $emails,                    
-      '#description' => t('Select one or more ' . $role_name . 's to notify.'),
+      '#description' => t('Select one or more ' . $role->name . 's to notify.'),
       '#multiple' => TRUE,
       '#weight' => --$weight,
-      '#hidden_values' => $params,
+      '#hidden' => $params,
     );
   }  
+}
+
+/**
+ * Returns user array if they have a certain role
+ */
+function workbench_email_get_users($rid){
+  $uids = array();
+  
+  // Use $query for readability
+  $query = 'SELECT DISTINCT(ur.uid) 
+    FROM {users_roles} AS ur
+    WHERE ur.rid IN (:rids)';
+  $result = db_query($query, array(':rids' => $rid));
+  
+  foreach ($result as $row) {
+    $uids[] = $row->uid;
+  }
+ 
+  $users = array(); 
+  $users = user_load_multiple($uids);
+  
+  return $users;  
 }
 
 /**

@@ -4,3 +4,5 @@ package = Workbench
 core = 7.x
 version = "7.x-1.0"
 project = "workbench_email"
+dependencies[] = workbench_moderation
+dependencies[] = token

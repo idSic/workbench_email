@@ -11,7 +11,8 @@ function workbench_email_transitions_features_export_options() {
   $email_transitions = workbench_email_get_email_transitions();
   foreach($email_transitions AS $transition_label => $email_transition_set){
     foreach($email_transition_set AS $rid => $email_transition){
-      $options[$email_transition->from_name . ':' . $email_transition->to_name . '::' . str_replace('_', ' ', strtolower($email_transition->role))] = $email_transition->role . ': ' . $email_transition->from_name . ' to ' . $email_transition->to_name;
+      $role = user_role_load_by_name($rid);
+      $options[$email_transition->from_name . ':' . $email_transition->to_name . '::' . str_replace('_', ' ', strtolower($role->name))] = $role->name . ': ' . $email_transition->from_name . ' to ' . $email_transition->to_name;
     }
   }
 
@@ -80,7 +81,7 @@ function workbench_email_transitions_features_rebuild($module) {
   $defaults = features_get_default('workbench_email_transitions', $module);
   foreach ($defaults as $machine_name => $transition) {
     $role = user_role_load_by_name($transition['role']);
-    workbench_email_transition_save((object) $transition, $role->rid, $transition['role']);
+    workbench_email_transition_save((object) $transition, $role->rid);
   }
   drupal_static_reset('workbench_email_transitions');
 }
