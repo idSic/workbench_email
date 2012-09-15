@@ -130,8 +130,8 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
     $params->transition = $current_from_state . '_to_' . $form_moderation_state;
 
     $email_transitions = workbench_email_get_email_transitions();
-    foreach ($email_transitions AS $transition => $email_roles) {
-      foreach ($email_roles AS $rid => $email_transition) {
+    foreach ($email_transitions as $transition => $email_roles) {
+      foreach ($email_roles as $rid => $email_transition) {
         if ($email_transition->from_name == $current_from_state
             && $email_transition->to_name == $form_moderation_state) {
           $params->rid = $rid;
@@ -176,7 +176,7 @@ function workbench_email_send_notification_submit($form, &$form_state) {
   }
 
   if (isset($form_state['values']['workflow_email'])) {
-    foreach ($form_state['values']['workflow_email'] AS $rid => $email) {
+    foreach ($form_state['values']['workflow_email'] as $rid => $email) {
       $email_transition = $form['revision_information']['workflow_email'][$rid]['#hidden'];
       workbench_email_mail_send(array_shift($email), $email_transition, $form_state);
     }
@@ -272,7 +272,7 @@ function workbench_email_determine_valid_roles($moderation_task, $content_types 
   );
 
   $roles = user_roles(TRUE);
-  foreach ($roles AS $rid => $role) {
+  foreach ($roles as $rid => $role) {
     if (strpos($role, 'admin') !== FALSE) {
       continue;
     }
@@ -322,7 +322,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
     $transition = "moderate content from " . $from_state . " to " . $to_state;
   }
 
-  foreach ($roles AS $rid => $role) {
+  foreach ($roles as $rid => $role) {
     if ($role == "administrator") {
       continue;
     }
@@ -440,7 +440,7 @@ function workbench_email_get_email_transitions($transition = NULL, $rid = NULL) 
     $query->condition('wve.rid', $rid);
   }
   $result = $query->execute();
-  foreach ($result AS $row) {
+  foreach ($result as $row) {
     $emails_transitions[$row->from_name . '_to_' . $row->to_name][$row->rid] = $row;
   }
   return $emails_transitions;
@@ -502,7 +502,7 @@ function workbench_email_create_form_element(&$form, $params) {
   global $user;
   if ($users) {
     $emails = array('0' => '- None -');
-    foreach ($users AS $uid => $account) {
+    foreach ($users as $uid => $account) {
       if ($user->mail != $account->mail) {
         $emails[$account->mail] = $account->name;
       }
@@ -537,7 +537,7 @@ function workbench_email_get_users($rid) {
 
   // Use $query for readability
   $query = 'SELECT DISTINCT(ur.uid)
-    FROM {users_roles} AS ur
+    FROM {users_roles} as ur
     WHERE ur.rid IN (:rids)';
   $result = db_query($query, array(':rids' => $rid));
 

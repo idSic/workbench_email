@@ -20,7 +20,7 @@
  */
 function workbench_email_form($form, &$form_state) {
   $email_transitions = workbench_email_get_email_transitions();
-  foreach ($email_transitions AS $transition_label => $email_transition_set) {
+  foreach ($email_transitions as $transition_label => $email_transition_set) {
     $form[$transition_label] = array(
       '#type' => 'fieldset',
       '#title' => check_plain(t(ucwords(str_replace('_', ' ', $transition_label)))),
@@ -28,7 +28,7 @@ function workbench_email_form($form, &$form_state) {
       '#collapsed' => TRUE,
     );
 
-    foreach ($email_transition_set AS $rid => $email_transition) {
+    foreach ($email_transition_set as $rid => $email_transition) {
       $email = workbench_email_get_email($email_transition, $rid);
       $subject = ''; $message = ''; $send_email = 0;
       if ($email) {
@@ -110,8 +110,8 @@ function workbench_email_form($form, &$form_state) {
  */
 function workbench_email_form_validate($form, &$form_state) {
   $email_transitions = workbench_email_get_email_transitions();
-  foreach ($email_transitions AS $transition_label => $email_transition_set) {
-    foreach ($email_transition_set AS $rid => $email_transition) {
+  foreach ($email_transitions as $transition_label => $email_transition_set) {
+    foreach ($email_transition_set as $rid => $email_transition) {
       if (isset($form_state['values'][$transition_label])) {
         $role = user_role_load($email_transition->rid);
         //determine if subject is set with no message
@@ -142,8 +142,8 @@ function workbench_email_form_validate($form, &$form_state) {
  */
 function workbench_email_form_submit($form, &$form_state) {
   $email_transitions = workbench_email_get_email_transitions();
-  foreach ($email_transitions AS $transition_label => $email_transition_set) {
-    foreach ($email_transition_set AS $rid => $email_transition) {
+  foreach ($email_transitions as $transition_label => $email_transition_set) {
+    foreach ($email_transition_set as $rid => $email_transition) {
       $subject = $form_state['values'][$transition_label][$rid]['subject'];
       $message = $form_state['values'][$transition_label][$rid]['message'];
       if ($subject && $message) {
@@ -209,7 +209,7 @@ function workbench_email_transitions_form($form, &$form_state) {
       '#markup' => check_plain(workbench_moderation_state_label($transition->to_name)),
     );
 
-    foreach ($roles AS $rid => $role) {
+    foreach ($roles as $rid => $role) {
       $email_transition = workbench_email_get_email_transitions($transition, $rid);
       $element[$role] = array(
         '#type' => 'checkbox',
@@ -250,7 +250,7 @@ function theme_workbench_email_transitions_form($variables) {
 
   $roles = workbench_email_determine_valid_roles('author');
   $role_names = array();
-  foreach ($roles AS $rid => $role) {
+  foreach ($roles as $rid => $role) {
     if (strpos($role, 'admin') === FALSE) {
       $role_names[$rid] = ucwords($role);
       $header[] = ucwords($role);
@@ -264,7 +264,7 @@ function theme_workbench_email_transitions_form($variables) {
     $row['data']['from'] = drupal_render($element['from_name']);
     $row['data'][] = '--&gt;';
     $row['data']['to'] = drupal_render($element['to_name']);
-    foreach ($roles AS $rid => $role) {
+    foreach ($roles as $rid => $role) {
       if (strpos($role, 'admin') === FALSE) {
         $row['data'][$role] = drupal_render($element[$role]);
       }
@@ -291,7 +291,7 @@ function theme_workbench_email_transitions_form($variables) {
 function workbench_email_transitions_form_submit($form, &$form_state) {
   $roles = workbench_email_determine_valid_roles('author');
   foreach ($form_state['values']['transitions'] as $transition) {
-    foreach ($roles AS $rid => $role) {
+    foreach ($roles as $rid => $role) {
       if (strpos($role, 'admin') === FALSE) {
         if ($transition[$role]) {
           workbench_email_transition_save($transition['transition'], $rid, $role);
