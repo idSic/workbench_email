@@ -183,8 +183,9 @@ function workbench_email_send_notification_submit($form, &$form_state) {
 }
 
 /**
- * Determines the emails attributes, sets the emails subject / message
- * and sends the email.
+ * Determines the emails attributes.
+ *
+ * Sets the emails subject / message and sends the email.
  *
  * @param $email
  *   The send to email address
@@ -341,8 +342,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
 }
 
 /**
- * Determines the email attributes to retrieve based off the
- * transtion, rid and node type.
+ * Determines the email attributes to retrieve.
  *
  * @param $transition
  *   The transtion object
@@ -416,8 +416,7 @@ function workbench_email_delete($transition, $rid) {
 }
 
 /**
- * Returns all email transitions, or returns all given a
- * transition and / or rid.
+ * Returns all email transitions given a transtion and rid.
  *
  * @param $transition
  *   The transition object
@@ -491,10 +490,12 @@ function workbench_email_transition_delete($transition, $rid) {
 }
 
 /**
+ * Create the email selection form element.
+ *
  * Creates the appropriate multi select list for a given role and stores
  * some email transition information into the form element.
  *
- * @param &$form
+ * @param $form
  *   The form object passed by reference
  *
  * @param $params

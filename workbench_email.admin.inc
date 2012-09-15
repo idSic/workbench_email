@@ -150,7 +150,7 @@ function workbench_email_form_submit($form, &$form_state) {
       if ($subject && $message) {
         workbench_email_save($email_transition, $rid, $subject, $message);
       }
-      else{
+      else {
         workbench_email_delete($email_transition, $rid);
       }
     }
@@ -237,7 +237,7 @@ function workbench_email_transitions_form($form, &$form_state) {
  * @param $variables
  *   The form array to render into a table
  *
- * @return $output
+ * @return output
  *   A rendered form in table structure
  */
 function theme_workbench_email_transitions_form($variables) {
@@ -282,8 +282,9 @@ function theme_workbench_email_transitions_form($variables) {
 }
 
 /**
- * Form submit handler for email transitions. Adds or deletes email
- * transitions depending on user input.
+ * Form submit handler for email transitions.
+ *
+ * Adds or deletes email transitions depending on user input.
  *
  * @param $form
  *   The form object
