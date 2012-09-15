@@ -25,12 +25,12 @@ function workbench_email_schema() {
         'description' => 'The to state that this email exists',
       ),
       'rid'  => array(
-        'type' => 'int', 
-        'unsigned' => TRUE, 
-        'not null' => TRUE, 
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
         'default' => 0,
         'description' => 'The role id',
-      ),      
+      ),
       'subject'  => array(
         'type' => 'varchar',
         'length' => 255,
@@ -43,16 +43,16 @@ function workbench_email_schema() {
         'not null' => TRUE,
         'size' => 'big',
         'translatable' => TRUE,
-      ),       
+      ),
     ),
     'indexes' => array(
       'rid'        => array('rid'),
       'transition' => array('from_name', 'to_name'),
       'set'        => array('rid', 'from_name', 'to_name'),
-    ),    
+    ),
     'primary key' => array('rid', 'from_name', 'to_name'),
   );
-  
+
   $schema['workbench_email_transitions'] = array(
     'description' => 'Custom table to hold email transitions',
     'fields' => array(
@@ -69,19 +69,19 @@ function workbench_email_schema() {
         'description' => 'The to transition state',
       ),
       'rid' => array(
-        'type' => 'int', 
-        'unsigned' => TRUE, 
-        'not null' => TRUE, 
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
         'default' => 0,
-        'description' => 'The user role ID',        
-      ),   
+        'description' => 'The user role ID',
+      ),
     ),
     'indexes' => array(
       'key'   => array('from_name', 'to_name', 'rid'),
-    ),    
+    ),
     'primary key' => array('from_name', 'to_name', 'rid'),
-  );  
-  
+  );
+
   return $schema;
 }
 
