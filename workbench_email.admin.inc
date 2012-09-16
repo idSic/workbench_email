@@ -9,11 +9,11 @@
  *
  * Administrators can use this form to add, update, delete emails.
  *
- * @param $form
- *   The form object
+ * @param array $form
+ *   The form array
  *
- * @param $form_state
- *   The form_state object
+ * @param array $form_state
+ *   The form_state array
  *
  * @return form
  *   Returns the form array
@@ -42,9 +42,10 @@ function workbench_email_form($form, &$form_state) {
       $params['from_state'] = $email_transition->from_name;
       $params['to_state'] = $email_transition->to_name;
 
+      $label = 'Email ' . ucwords($role->name);
       $form[$transition_label][$rid] = array(
         '#type' => 'fieldset',
-        '#title' => check_plain(t('Email ' . ucwords($role->name))),
+        '#title' => check_plain(t($label)),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
@@ -83,15 +84,15 @@ function workbench_email_form($form, &$form_state) {
 
     $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => t('Submit'),
+      '#value' => t('Save Configuration'),
     );
   }
   else {
     drupal_set_message(t('No email transitions have been defined yet. Visit the
                          <a href="@url"> email transition configuration page</a>',
-                          array(
-                                '@url' =>
-                                url('admin/config/workbench/moderation/email-transitions'))), 'warning');
+                      array(
+                            '@url' =>
+                            url('admin/config/workbench/moderation/email-transitions'))), 'warning');
     $form['#disabled'] = TRUE;
   }
 
@@ -103,11 +104,11 @@ function workbench_email_form($form, &$form_state) {
  *
  * Validates if the user has entered a valid subject / message for the emails.
  *
- * @param $form
- *   The form object
+ * @param array $form
+ *   The form array
  *
- * @param $form_state
- *   The form_state object
+ * @param array $form_state
+ *   The form_state array
  */
 function workbench_email_form_validate($form, &$form_state) {
   $email_transitions = workbench_email_get_email_transitions();
@@ -135,11 +136,11 @@ function workbench_email_form_validate($form, &$form_state) {
 /**
  * Submit function for the form, saves or deletes emails.
  *
- * @param $form
- *   The form object
+ * @param array $form
+ *   The form array
  *
- * @param $form_state
- *   The form_state object
+ * @param array $form_state
+ *   The form_state array
  */
 function workbench_email_form_submit($form, &$form_state) {
   $email_transitions = workbench_email_get_email_transitions();
@@ -161,11 +162,11 @@ function workbench_email_form_submit($form, &$form_state) {
 /**
  * Administration form to create and delete email transitions.
  *
- * @param $form
- *   The form object
+ * @param array $form
+ *   The form array
  *
- * @param $form_state
- *   The form_state object
+ * @param array $form_state
+ *   The form_state array
  *
  * @return form
  *   A ready form array
@@ -234,10 +235,10 @@ function workbench_email_transitions_form($form, &$form_state) {
 /**
  * Transforms the email transitions administration form into a table.
  *
- * @param $variables
+ * @param array $variables
  *   The form array to render into a table
  *
- * @return output
+ * @return array output
  *   A rendered form in table structure
  */
 function theme_workbench_email_transitions_form($variables) {
@@ -286,11 +287,11 @@ function theme_workbench_email_transitions_form($variables) {
  *
  * Adds or deletes email transitions depending on user input.
  *
- * @param $form
- *   The form object
+ * @param array $form
+ *   The form array
  *
- * @param $form_state
- *   The form_state object
+ * @param array $form_state
+ *   The form_state array
  */
 function workbench_email_transitions_form_submit($form, &$form_state) {
   $roles = workbench_email_determine_valid_roles('author');
