@@ -504,7 +504,7 @@ function workbench_email_transition_delete($transition, $rid) {
  * @param array $form
  *   The form array passed by reference
  *
- * @param $params
+ * @param object $params
  *   A object containing information relating to the email transition
  */
 function workbench_email_create_form_element(&$form, $params) {
