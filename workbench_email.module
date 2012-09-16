@@ -258,7 +258,7 @@ function workbench_email_mail($key, &$message, $params) {
  * @param array $content_types
  *   The content types to check permissions against
  *
- * @return array valid_roles
+ * @return valid_roles
  *   Returns the valid roles or an empty array
  */
 function workbench_email_determine_valid_roles($moderation_task, $content_types = array()) {
@@ -317,7 +317,7 @@ function workbench_email_determine_valid_roles($moderation_task, $content_types 
  * @param string $node_type
  *   The node type used to determine valid roles.
  *
- * @return array valid_roles
+ * @return valid_roles
  *   Returns the valid roles or an empty array
  */
 function workbench_email_determine_valid_roles_per_transition($from_state, $to_state, $node_type = NULL) {
@@ -356,7 +356,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
  * @param int $rid
  *   The role ID
  *
- * @return object email
+ * @return email
  *   Returns the workbench_email object or FALSE
  */
 function workbench_email_get_email($transition, $rid = 0) {
@@ -386,7 +386,7 @@ function workbench_email_get_email($transition, $rid = 0) {
  * @param string $message
  *   The email message to save
  *
- * @return boolean db_merge
+ * @return db_merge
  *   Returns the TRUE or FALSE
  */
 function workbench_email_save($transition, $rid, $subject, $message) {
@@ -410,7 +410,7 @@ function workbench_email_save($transition, $rid, $subject, $message) {
  * @param int $rid
  *   The role ID
  *
- * @return boolean db_delete
+ * @return db_delete
  *   Returns TRUE or FALSE
  */
 function workbench_email_delete($transition, $rid) {
@@ -430,7 +430,7 @@ function workbench_email_delete($transition, $rid) {
  * @param int $rid
  *   The role ID
  *
- * @return object email_transitions
+ * @return email_transitions
  *   Returns the email_transition object or FALSE
  */
 function workbench_email_get_email_transitions($transition = NULL, $rid = NULL) {
@@ -461,7 +461,7 @@ function workbench_email_get_email_transitions($transition = NULL, $rid = NULL) 
  * @param int $rid
  *   The role ID
  *
- * @return boolean db_merge
+ * @return db_merge
  *   Returns TRUE or FALSE
  */
 function workbench_email_transition_save($transition, $rid) {
@@ -484,7 +484,7 @@ function workbench_email_transition_save($transition, $rid) {
  * @param int $rid
  *   The role ID
  *
- * @return boolean db_delete
+ * @return db_delete
  *   Returns TRUE or FALSE
  */
 function workbench_email_transition_delete($transition, $rid) {
@@ -504,7 +504,7 @@ function workbench_email_transition_delete($transition, $rid) {
  * @param array $form
  *   The form array passed by reference
  *
- * @param object $params
+ * @param $params
  *   A object containing information relating to the email transition
  */
 function workbench_email_create_form_element(&$form, $params) {
@@ -540,7 +540,7 @@ function workbench_email_create_form_element(&$form, $params) {
  * @param int $rid
  *   The role ID
  *
- * @return array users
+ * @return users
  *   Returns an array of users or an empty array
  */
 function workbench_email_get_users($rid) {
