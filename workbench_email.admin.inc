@@ -91,8 +91,8 @@ function workbench_email_form($form, &$form_state) {
     drupal_set_message(t('No email transitions have been defined yet. Visit the
                          <a href="@url"> email transition configuration page</a>',
                       array(
-                            '@url' =>
-                            url('admin/config/workbench/moderation/email-transitions'))), 'warning');
+                        '@url' =>
+                        url('admin/config/workbench/moderation/email-transitions'))), 'warning');
     $form['#disabled'] = TRUE;
   }
 
@@ -238,7 +238,7 @@ function workbench_email_transitions_form($form, &$form_state) {
  * @param array $variables
  *   The form array to render into a table
  *
- * @return array output
+ * @return output
  *   A rendered form in table structure
  */
 function theme_workbench_email_transitions_form($variables) {
