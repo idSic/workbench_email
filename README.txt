@@ -12,8 +12,6 @@ CONTENTS
 2.  Installation
 2.1  Requirements
 3.  Configuration
-3.1  Configuring email transitions
-3.2  Configuring emails
 4.  Using the module
 5.  Troubleshooting
 6.  Developer notes
@@ -23,7 +21,7 @@ CONTENTS
 ----
 1.  Introduction
 
-Workbench Email  
+Workbench Email
 
 ----
 1.1  Concepts
@@ -61,9 +59,9 @@ Workbench Moderation's configuration section is located at:
 
 - Admin > Configuration > Workbench > Workbench Moderation -> Email Transitions
 
-This section allows the admin to configure email transitions based on 
+This section allows the admin to configure email transitions based on
 transition states and user roles.
-    
+
 - Admin > Configuration > Workbench > Workbench Moderation -> Emails
 
 Depending on what email transtions have been set, the admin can configure each
@@ -85,7 +83,7 @@ Once the module is installed and moderation is enabled for one or more node
 types, users with permission may:
 
 * Select the appropriate users that you wish to send an email to when moderated
-content is moving through configured email transition. 
+content is moving through configured email transition.
 
 ----
 5.  Troubleshooting
@@ -94,7 +92,7 @@ content is moving through configured email transition.
 user(s) they wish to send an email to check the email transitions and emails
 administration pages. If no email transition is defined, no form option will
 display. If no email subject / message is defined, the system will display the
-following message: 
+following message:
 - No email template is set, so no email was sent. Contact your system admin
 to resolve this issue.
 
