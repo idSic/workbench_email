@@ -42,10 +42,10 @@ function workbench_email_form($form, &$form_state) {
       $params['from_state'] = $email_transition->from_name;
       $params['to_state'] = $email_transition->to_name;
 
-      $label = 'Email ' . ucwords($role->name);
       $form[$transition_label][$rid] = array(
         '#type' => 'fieldset',
-        '#title' => check_plain(t($label)),
+        '#title' => check_plain(t("Email @role_name",
+                                  array('@role_name' => ucwords($role->name)))),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
@@ -53,14 +53,14 @@ function workbench_email_form($form, &$form_state) {
       $form[$transition_label][$rid]['subject'] = array(
         '#type' => 'textfield',
         '#default_value' => $subject,
-        '#title' => 'Subject',
+        '#title' => t('Subject'),
         '#maxlength' => 255,
       );
 
       $form[$transition_label][$rid]['message'] = array(
         '#type' => 'textarea',
         '#default_value' => $message,
-        '#title' => 'Message',
+        '#title' => t('Message'),
         '#size' => 30,
       );
     }
@@ -120,13 +120,13 @@ function workbench_email_form_validate($form, &$form_state) {
         if ($form_state['values'][$transition_label][$rid]['subject'] != NULL
             && $form_state['values'][$transition_label][$rid]['message'] == NULL) {
           form_set_error("$transition_label][$rid][message",
-                         'You must add an email message if a subject is provided');
+                         t('You must add an email message if a subject is provided'));
         }
         // Determine if message is set with no subject.
         if ($form_state['values'][$transition_label][$rid]['subject'] == NULL
             && $form_state['values'][$transition_label][$rid]['message'] != NULL) {
           form_set_error("$transition_label][$rid][subject",
-                         'You must add a subject if an email message is provided');
+                         t('You must add a subject if an email message is provided'));
         }
       }
     }
@@ -255,7 +255,7 @@ function theme_workbench_email_transitions_form($variables) {
   foreach ($roles as $rid => $role) {
     if (strpos($role, 'admin') === FALSE) {
       $role_names[$rid] = ucwords($role);
-      $header[] = ucwords($role);
+      $header[] = t("@role", array('@role' => ucwords($role)));
     }
   }
 

@@ -84,21 +84,3 @@ function workbench_email_schema() {
 
   return $schema;
 }
-
-/**
- * Implements hook_install().
- */
-function workbench_email_install() {
-  // Place workbench email after workbench moderation.
-  db_update('system')
-  ->fields(array('weight' => 6))
-  ->condition('name', 'workbench_email')
-  ->execute();
-}
-
-/**
- * Implements hook_uninstall().
- */
-function workbench_email_uninstall() {
-  drupal_uninstall_schema('workbench_email');
-}
