@@ -32,14 +32,14 @@ function workbench_email_menu() {
 }
 
 /**
- * Implments hook_module_implements_alter
+ * Implments hook_module_implements_alter().
  *
- * Make sure workbench_email form alter fires after workbench_moderation
- * form alter.
+ * Make sure workbench_email form_alter fires after workbench_moderation
+ * form_alter.
  */
-function workbench_email_module_implements_alter(&$implementations, $hook){
-  if(strpos($hook, 'form') !== FALSE){
-    if(isset($implementations['workbench_moderation']) && isset($implementations['workbench_email'])){
+function workbench_email_module_implements_alter(&$implementations, $hook) {
+  if (strpos($hook, 'form') !== FALSE) {
+    if (isset($implementations['workbench_moderation'], $implementations['workbench_email'])) {
       $workbench_email = $implementations['workbench_email'];
       unset($implementations['workbench_email']);
 
