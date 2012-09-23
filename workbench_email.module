@@ -152,19 +152,12 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       $form_moderation_state = $form_state['values']['revision_information']['workbench_moderation_state_new'];
     }
 
-    // Determine transition.
-    $params = new stdClass();
-    $params->from_name = $current_from_state;
-    $params->to_name = $form_moderation_state;
-    $params->transition = $current_from_state . '_to_' . $form_moderation_state;
-
     $email_transitions = workbench_email_get_email_transitions();
     foreach ($email_transitions as $transition => $email_roles) {
       foreach ($email_roles as $rid => $email_transition) {
         if ($email_transition->from_name == $current_from_state
             && $email_transition->to_name == $form_moderation_state) {
-          $params->rid = $rid;
-          workbench_email_create_form_element($form, $params);
+          workbench_email_create_form_element($form, $email_transition);
         }
       }
     }
@@ -194,15 +187,6 @@ function workbench_email_form_node_callback($form, $form_state) {
  * Sends emails to the specific users selected in the form element
  */
 function workbench_email_send_notification_submit($form, &$form_state) {
-  // Without this the state transition never gets saved.
-  if (isset($_REQUEST['workbench_moderation_state_new'])) {
-    $form_state['values']['revision_information']['workbench_moderation_state_new'] = $_REQUEST['workbench_moderation_state_new'];
-    $form_state['values']['workbench_moderation_state_new'] = $_REQUEST['workbench_moderation_state_new'];
-  }
-  if (isset($_REQUEST['revision_information']['workbench_moderation_state_new'])) {
-    $form_state['values']['workbench_moderation_state_new'] = $_REQUEST['revision_information']['workbench_moderation_state_new'];
-  }
-
   if (isset($form_state['values']['workflow_email'])) {
     foreach ($form_state['values']['workflow_email'] as $rid => $email) {
       $email_transition = $form['revision_information']['workflow_email'][$rid]['#hidden'];
@@ -232,7 +216,8 @@ function workbench_email_mail_send($email, $email_transition, $form_state) {
 
   $to = $email;
   $from = variable_get('site_mail', 'admin@example.com');
-  $email_attributes = workbench_email_get_email($email_transition, $email_transition->rid);
+  $email_attributes = workbench_email_get_email($email_transition,
+                                                $email_transition->rid);
   if (empty($email_attributes)) {
     drupal_set_message(t('No email template is set, so no email was sent.
                        Contact your system admin to resolve this issue.'));
@@ -530,8 +515,8 @@ function workbench_email_transition_delete($transition, $rid) {
  * @param object $params
  *   A object containing information relating to the email transition
  */
-function workbench_email_create_form_element(&$form, $params) {
-  $users = workbench_email_get_users($params->rid);
+function workbench_email_create_form_element(&$form, $email_transition) {
+  $users = workbench_email_get_users($email_transition->rid);
   global $user;
   if ($users) {
     $emails = array('0' => '- None -');
@@ -540,18 +525,14 @@ function workbench_email_create_form_element(&$form, $params) {
         $emails[$account->mail] = $account->name;
       }
     }
-    if (isset($form['revision_information'])) {
-      $weight = $form['revision_information']['#weight'];
-    }
-    $role = user_role_load($params->rid);
+    $role = user_role_load($email_transition->rid);
     $form['revision_information']['workflow_email'][$role->rid] = array(
       '#type' => 'select',
       '#title' => t("@role_name", array('@role_name' => ucwords($role->name))),
       '#options' => $emails,
       '#description' => t('Select one or more users to notify'),
       '#multiple' => TRUE,
-      '#weight' => --$weight,
-      '#hidden' => $params,
+      '#hidden' => $email_transition,
     );
   }
 }
