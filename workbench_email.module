@@ -258,6 +258,38 @@ function workbench_email_mail($key, &$message, $params) {
 }
 
 /**
+ * Retrieves only the moderation permission tasks.
+ *
+ * @return permission
+ *  Returns the permissions for moderating content
+ */
+function wv_workflow_determine_moderation_permissions() {
+  // Per-node-type, per-transition permissions. Used by workbench_moderation_state_allowed().
+  $permissions = array();
+  $node_types = workbench_moderation_moderate_node_types();
+  $transitions = workbench_moderation_transitions();
+
+  foreach ($transitions as $transition) {
+    $from_state = $transition->from_name;
+    $to_state = $transition->to_name;
+
+    // Always set a permission to perform all moderation states.
+    $permissions["moderate content from $from_state to $to_state"] = TRUE;
+
+    // Per-node type permissions are very complex, and should only be used if
+    // absolutely needed. For right now, this is hardcoded to OFF. To enable it,
+    // Add this line to settings.php and then reset permissions.
+    //   $conf['workbench_moderation_per_node_type'] = TRUE;
+    if (variable_get('workbench_moderation_per_node_type', FALSE)) {
+      foreach ($node_types as $node_type) {
+        $permissions["moderate $node_type state from $from_state to $to_state"] = TRUE;
+      }
+    }
+  }
+  return $permissions;
+}
+
+/**
  * Determines the valid roles for a given moderation task and content type(s).
  *
  * @param string $moderation_task
@@ -277,36 +309,26 @@ function workbench_email_determine_valid_roles($moderation_task, $content_types 
     $types[$type] = $all_types[$type]->name;
   }
 
-  $moderation_tasks = array(
-    'author' => t('Author moderated content'),
-    'editor' => t('Edit moderated content'),
-    'moderator' => t('Moderate content'),
-    'publisher' => t('Publish moderated content'),
-  );
-
-  $roles = user_roles(TRUE);
-  foreach ($roles as $rid => $role) {
-    if (strpos($role, 'admin') !== FALSE) {
-      continue;
-    }
+  $moderation_permissions = wv_workflow_determine_moderation_permissions();
+  $roles = user_roles();
+  foreach ($roles AS $rid => $role) {
     // Get a full list of this role's permissions.
-    $actual_permissions = array();
-    $actual_permissions = user_role_permissions(array_filter(array(
+    $actual_permissions_set = array();
+    $actual_permissions_set = user_role_permissions(array_filter(array(
       $rid => TRUE,
       DRUPAL_AUTHENTICATED_RID => ($rid != DRUPAL_ANONYMOUS_RID),
     )));
 
-    // The results of user_role_permissions() are in a nested array:
-    // array(rid => array("permission name" => TRUE))
-    // Check each for our recommended permissions.
-    module_load_include('inc', 'workbench_moderation', 'workbench_moderation.admin');
-    $recommended_permissions = workbench_moderation_recommended_permissions($content_types);
-    $recommended_permissions = $recommended_permissions[$moderation_task];
-    foreach ($actual_permissions as $permissions) {
-      $recommended_permissions = array_diff($recommended_permissions,
-                                            array_keys(array_filter($permissions)));
+    $valid_permissions = array();
+    foreach ($actual_permissions_set AS $role_rid => $actual_permissions) {
+      foreach ($actual_permissions AS $permission => $value) {
+        if (array_key_exists($permission, $moderation_permissions)) {
+          $valid_permissions[] = $permission;
+        }
+      }
     }
-    if (empty($recommended_permissions)) {
+
+    if ($valid_permissions) {
       $valid_roles[$rid] = $role;
     }
   }
