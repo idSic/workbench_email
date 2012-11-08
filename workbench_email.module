@@ -183,8 +183,14 @@ function workbench_email_form_node_callback($form, $form_state) {
 /**
  * Submit handler for the workflow_email form element.
  *
- * Saves the new transition state
- * Sends emails to the specific users selected in the form element
+ * Sends emails to the specific users selected in the form element.
+ *
+ * @param array $form
+ *   The form array
+ *
+ * @param array $form_state
+ *   The form_state array
+ *
  */
 function workbench_email_notification_submit($form, &$form_state) {
   if (isset($form_state['values']['workflow_email'])) {
@@ -245,7 +251,6 @@ function workbench_email_mail_send($email, $email_transition, $node) {
  * Implements hook_mail().
  */
 function workbench_email_mail($key, &$message, $params) {
-  watchdog('ksks', t(token_replace($params['message'], $params)));
   switch ($key) {
     case 'workflow_email':
       $message['subject'] = t(token_replace($params['subject'], $params));
