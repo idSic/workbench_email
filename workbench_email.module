@@ -294,12 +294,6 @@ function wv_workflow_determine_moderation_permissions() {
 /**
  * Determines the valid roles for a given moderation task and content type(s).
  *
- * @param string $moderation_task
- *   The moderation task type
- *
- * @param array $content_types
- *   The content types to check permissions against
- *
  * @return valid_roles
  *   Returns the valid roles or an empty array
  */
@@ -600,8 +594,8 @@ function workbench_email_get_users($rid) {
  */
 function workbench_email_features_api() {
   return array(
-    'workbench_email_transitions' => array(
-      'name' => t('Workbench Email Transitions'),
+    'workbench_email' => array(
+      'name' => t('Workbench Email'),
       'default_hook' => 'workbench_email_export_email_transitions',
       'feature_source' => TRUE,
       'default_file' => FEATURES_DEFAULTS_INCLUDED,
