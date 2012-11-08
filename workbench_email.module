@@ -162,13 +162,8 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       }
     }
 
-    //$form['#submit'][] = $form['type']['#value'] . '_node_form_submit';
-    //$form['#submit'][] = 'workbench_email_send_notification_node_submit';
+    $form['actions']['submit']['#submit'][] = 'workbench_email_notification_submit';
   }
-}
-
-function workbench_email_form_alter($form, $form_state, $form_id){
-  $var = '';
 }
 
 /**
@@ -191,11 +186,11 @@ function workbench_email_form_node_callback($form, $form_state) {
  * Saves the new transition state
  * Sends emails to the specific users selected in the form element
  */
-function workbench_email_node_submit($node, $form, &$form_state) {
+function workbench_email_notification_submit($form, &$form_state) {
   if (isset($form_state['values']['workflow_email'])) {
     foreach ($form_state['values']['workflow_email'] as $rid => $email) {
       $email_transition = $form['revision_information']['workflow_email'][$rid]['#hidden'];
-      workbench_email_mail_send(array_shift($email), $email_transition, $node);
+      workbench_email_mail_send(array_shift($email), $email_transition, $form_state['node']);
     }
   }
 }
@@ -250,6 +245,7 @@ function workbench_email_mail_send($email, $email_transition, $node) {
  * Implements hook_mail().
  */
 function workbench_email_mail($key, &$message, $params) {
+  watchdog('ksks', t(token_replace($params['message'], $params)));
   switch ($key) {
     case 'workflow_email':
       $message['subject'] = t(token_replace($params['subject'], $params));
