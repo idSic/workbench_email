@@ -83,6 +83,7 @@ function workbench_email_transitions_features_revert($module) {
  */
 function workbench_email_transitions_features_rebuild($module) {
   $defaults = features_get_default('workbench_email_transitions', $module);
+  workbench_email_empty_email_transitions();
   foreach ($defaults as $machine_name => $transition) {
     $role = user_role_load_by_name($transition['role']);
     workbench_email_transition_save((object) $transition, $role->rid);

@@ -78,7 +78,6 @@ function workbench_email_form($form, &$form_state) {
     $form['token_set']['tokens'] = array(
       '#theme' => 'token_tree',
       '#token_types' => array('node', 'user'),
-      '#global_types' => TRUE,
       '#click_insert' => TRUE,
     );
 
@@ -212,13 +211,15 @@ function workbench_email_transitions_form($form, &$form_state) {
     );
 
     foreach ($roles as $rid => $role) {
-      $email_transition = workbench_email_get_email_transitions($transition, $rid);
-      $element[$role] = array(
-        '#type' => 'checkbox',
-        '#title' => check_plain(t(ucwords($role))),
-        '#title_display' => 'invisible',
-        '#default_value' => $email_transition ? TRUE : FALSE,
-      );
+      if (strpos($role, 'admin') === FALSE) {
+        $email_transition = workbench_email_get_email_transitions($transition, $rid);
+        $element[$role] = array(
+          '#type' => 'checkbox',
+          '#title' => check_plain(t(ucwords($role))),
+          '#title_display' => 'invisible',
+          '#default_value' => $email_transition ? TRUE : FALSE,
+        );
+      }
     }
 
     $form['transitions'][] = $element;
