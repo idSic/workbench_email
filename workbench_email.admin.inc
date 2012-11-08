@@ -175,7 +175,7 @@ function workbench_email_transitions_form($form, &$form_state) {
   // List existing states.
   $types = drupal_map_assoc(workbench_moderation_moderate_node_types());
   $transitions = workbench_moderation_transitions();
-  $roles = workbench_email_determine_valid_roles('author');
+  $roles = workbench_email_determine_valid_roles();
 
   if (!$types) {
     drupal_set_message(t('Moderation is not enabled for any content types. Visit
@@ -250,7 +250,7 @@ function theme_workbench_email_transitions_form($variables) {
     t('To'),
   );
 
-  $roles = workbench_email_determine_valid_roles('author');
+  $roles = workbench_email_determine_valid_roles();
   $role_names = array();
   foreach ($roles as $rid => $role) {
     if (strpos($role, 'admin') === FALSE) {
@@ -294,7 +294,7 @@ function theme_workbench_email_transitions_form($variables) {
  *   The form_state array
  */
 function workbench_email_transitions_form_submit($form, &$form_state) {
-  $roles = workbench_email_determine_valid_roles('author');
+  $roles = workbench_email_determine_valid_roles();
   foreach ($form_state['values']['transitions'] as $transition) {
     foreach ($roles as $rid => $role) {
       if (strpos($role, 'admin') === FALSE) {

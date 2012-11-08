@@ -301,7 +301,7 @@ function wv_workflow_determine_moderation_permissions() {
  * @return valid_roles
  *   Returns the valid roles or an empty array
  */
-function workbench_email_determine_valid_roles($moderation_task, $content_types = array()) {
+function workbench_email_determine_valid_roles() {
   $valid_roles = array();
   $types = drupal_map_assoc(workbench_moderation_moderate_node_types());
   $all_types = node_type_get_types();
