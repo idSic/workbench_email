@@ -577,10 +577,11 @@ function workbench_email_create_form_element(&$form, $email_transition) {
  */
 function workbench_email_get_users($rid) {
   $uids = array();
-  $query = 'SELECT DISTINCT(ur.uid)
-    FROM {users_roles} as ur
-    WHERE ur.rid IN (:rids)';
-  $result = db_query($query, array(':rids' => $rid));
+  $query = db_select('users_roles', 'ur')
+    ->fields('ur', array('uid'))
+    ->condition('ur.rid', $rid);
+  $query->distinct();
+  $result = $query->execute();
   foreach ($result as $row) {
     $uids[] = $row->uid;
   }
