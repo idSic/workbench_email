@@ -120,3 +120,8 @@ Workbench Email uses two tables to track emails and email transitions.
 7.  Feature roadmap
 
 * Allow content type specific email transitions / emails
+* Implement hooks for specific situation (drupal_alter's)
+* Allow email select list to show up under all moderation areas
+  (view draft, moderate)
+* Featurize workbench_emails
+
