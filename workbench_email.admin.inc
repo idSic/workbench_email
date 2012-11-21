@@ -20,10 +20,14 @@
  */
 function workbench_email_form($form, &$form_state) {
   $email_transitions = workbench_email_get_email_transitions();
+  $state_labels = workbench_moderation_state_labels();
   foreach ($email_transitions as $transition_label => $email_transition_set) {
+    $state_label = $email_transition_set;
+    $transition = array_shift($state_label);
+    $transition_title = t(ucwords($state_labels[$transition->from_name] .' To '.$state_labels[$transition->to_name]));
     $form[$transition_label] = array(
       '#type' => 'fieldset',
-      '#title' => check_plain(t(ucwords(str_replace('_', ' ', $transition_label)))),
+      '#title' => check_plain($transition_title),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
