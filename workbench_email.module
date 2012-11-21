@@ -385,7 +385,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
  * @return email
  *   Returns the workbench_email object or FALSE
  */
-function workbench_email_get_email($transition, $rid = 0) {
+function workbench_email_get_email($transition, $rid) {
   $email = array();
   $query = db_select('workbench_emails', 'wve')
     ->fields('wve', array('rid', 'from_name', 'to_name', 'subject', 'message'))
