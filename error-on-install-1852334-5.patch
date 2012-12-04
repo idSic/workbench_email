@@ -1,0 +1,82 @@
+diff --git a/workbench_email.install b/workbench_email.install
+index cbfebb8..412f75d 100644
+--- a/workbench_email.install
++++ b/workbench_email.install
+@@ -12,6 +12,11 @@ function workbench_email_schema() {
+   $schema['workbench_emails'] = array(
+     'description' => 'Custom table to hold moderation emails',
+     'fields' => array(
++      'wid' => array(
++        'type' => 'serial',
++        'not null' => TRUE,
++        'description' => 'An auto increment id',
++      ),
+       'from_name'  => array(
+         'type' => 'varchar',
+         'length' => 255,
+@@ -47,15 +52,18 @@ function workbench_email_schema() {
+     ),
+     'indexes' => array(
+       'rid'        => array('rid'),
+-      'transition' => array('from_name', 'to_name'),
+-      'set'        => array('rid', 'from_name', 'to_name'),
+     ),
+-    'primary key' => array('rid', 'from_name', 'to_name'),
++    'primary key' => array('wid'),
+   );
+ 
+   $schema['workbench_email_transitions'] = array(
+     'description' => 'Custom table to hold email transitions',
+     'fields' => array(
++      'tid' => array(
++        'type' => 'serial',
++        'not null' => TRUE,
++        'description' => 'An auto increment id',
++      ),
+       'from_name'  => array(
+         'type' => 'varchar',
+         'length' => 255,
+@@ -77,10 +85,41 @@ function workbench_email_schema() {
+       ),
+     ),
+     'indexes' => array(
+-      'key'   => array('from_name', 'to_name', 'rid'),
++      'rid'   => array('rid'),
+     ),
+-    'primary key' => array('from_name', 'to_name', 'rid'),
++    'primary key' => array('tid'),
+   );
+ 
+   return $schema;
+ }
++
++/**
++ * Removes string indexes from the 'workbench_emails' and
++ * 'workbench_email_transitions' tables. Also adds the 'rid' index
++ * to the 'workbench_email_transitions' table.
++ */
++function workbench_email_update_7001() {
++  // Remove the transition index from the 'workbench_emails' table.
++  db_drop_index('workbench_emails', 'transition');
++
++  // Remove the set index from the 'workbench_emails' table.
++  db_drop_index('workbench_emails', 'set');
++
++  // Remove the key index from the 'workbench_email_transitions' table.
++  db_drop_index('workbench_email_transitions', 'key');
++
++  // Add an rid index on the 'workbench_email_transitions' table.
++  db_add_index('workbench_email_transitions', 'rid', array('rid'));
++
++  // Remove old primary key on 'workbench_emails' table.
++  db_drop_primary_key('workbench_email');
++
++  // Add new primary key on 'workbench_emails' table
++  db_add_primary_key('workbench_email', array('wid'));
++
++  // Remove old primary key on 'workbench_email_transitions' table.
++  db_drop_primary_key('workbench_email_transitions');
++
++  // Add new primary key on 'workbench_email_transitions' table
++  db_add_primary_key('workbench_email_transitions', array('tid'));
++}
