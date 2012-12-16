@@ -33,7 +33,6 @@ function workbench_email_form($form, &$form_state) {
     );
 
     foreach ($email_transition_set as $rid => $email_transition) {
-      //$email = workbench_email_get_email($email_transition, $rid);
       $subject = $email_transition->subject;
       $message = $email_transition->message;
       $role = user_role_load($rid);

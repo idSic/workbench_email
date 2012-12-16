@@ -79,9 +79,10 @@ function workbench_email_update_7001() {
 }
 
 /**
- * Removes the NOT NULL constraint from the workbench_email
- * table. Removes the workbench_email_transitions table
- * from the schema.
+ * Removes the not null constraint from the fields
+ * subject and message within workbench_emails. Also,
+ * removes the workbench_email_transitions table from
+ * the schema.
  */
 function workbench_email_update_7002() {
   db_change_field('workbench_emails', 'subject', 'subject',
