@@ -19,9 +19,9 @@
  *   Returns the form array
  */
 function workbench_email_form($form, &$form_state) {
-  $email_transitions = workbench_email_get_email_transitions();
+  $workbench_emails = workbench_email_get();
   $state_labels = workbench_moderation_state_labels();
-  foreach ($email_transitions as $transition_label => $email_transition_set) {
+  foreach ($workbench_emails as $transition_label => $email_transition_set) {
     $state_label = $email_transition_set;
     $transition = array_shift($state_label);
     $transition_title = t(ucwords($state_labels[$transition->from_name] .' To '.$state_labels[$transition->to_name]));
@@ -33,13 +33,9 @@ function workbench_email_form($form, &$form_state) {
     );
 
     foreach ($email_transition_set as $rid => $email_transition) {
-      $email = workbench_email_get_email($email_transition, $rid);
-      $subject = ''; $message = ''; $send_email = 0;
-      if ($email) {
-        // Add default values for these fields.
-        $subject = $email->subject;
-        $message = $email->message;
-      }
+      //$email = workbench_email_get_email($email_transition, $rid);
+      $subject = $email_transition->subject;
+      $message = $email_transition->message;
       $role = user_role_load($rid);
       $params['rid'] = $rid;
       $params['role'] = $role->name;
@@ -70,7 +66,7 @@ function workbench_email_form($form, &$form_state) {
     }
   }
 
-  if ($email_transitions) {
+  if ($workbench_emails) {
     $form['#tree'] = TRUE;
 
     $form['token_set'] = array(
@@ -114,11 +110,10 @@ function workbench_email_form($form, &$form_state) {
  *   The form_state array
  */
 function workbench_email_form_validate($form, &$form_state) {
-  $email_transitions = workbench_email_get_email_transitions();
-  foreach ($email_transitions as $transition_label => $email_transition_set) {
+  $workbench_emails = workbench_email_get();
+  foreach ($workbench_emails as $transition_label => $email_transition_set) {
     foreach ($email_transition_set as $rid => $email_transition) {
       if (isset($form_state['values'][$transition_label])) {
-        $role = user_role_load($email_transition->rid);
         // Determine if subject is set with no message.
         if ($form_state['values'][$transition_label][$rid]['subject'] != NULL
             && $form_state['values'][$transition_label][$rid]['message'] == NULL) {
@@ -146,17 +141,12 @@ function workbench_email_form_validate($form, &$form_state) {
  *   The form_state array
  */
 function workbench_email_form_submit($form, &$form_state) {
-  $email_transitions = workbench_email_get_email_transitions();
-  foreach ($email_transitions as $transition_label => $email_transition_set) {
+  $workbench_emails = workbench_email_get();
+  foreach ($workbench_emails as $transition_label => $email_transition_set) {
     foreach ($email_transition_set as $rid => $email_transition) {
       $subject = $form_state['values'][$transition_label][$rid]['subject'];
       $message = $form_state['values'][$transition_label][$rid]['message'];
-      if ($subject && $message) {
-        workbench_email_save($email_transition, $rid, $subject, $message);
-      }
-      else {
-        workbench_email_delete($email_transition, $rid);
-      }
+      workbench_email_save($email_transition, $rid, $subject, $message);
     }
   }
   drupal_set_message(t("Email's have been updated"));
@@ -216,12 +206,12 @@ function workbench_email_transitions_form($form, &$form_state) {
 
     foreach ($roles as $rid => $role) {
       if (strpos($role, 'admin') === FALSE) {
-        $email_transition = workbench_email_get_email_transitions($transition, $rid);
+        $workbench_email = workbench_email_get($transition, $rid);
         $element[$role] = array(
           '#type' => 'checkbox',
           '#title' => check_plain(t(ucwords($role))),
           '#title_display' => 'invisible',
-          '#default_value' => $email_transition ? TRUE : FALSE,
+          '#default_value' => $workbench_email ? TRUE : FALSE,
         );
       }
     }
@@ -304,10 +294,10 @@ function workbench_email_transitions_form_submit($form, &$form_state) {
     foreach ($roles as $rid => $role) {
       if (strpos($role, 'admin') === FALSE) {
         if ($transition[$role]) {
-          workbench_email_transition_save($transition['transition'], $rid, $role);
+          workbench_email_save($transition['transition'], $rid);
         }
         else {
-          workbench_email_transition_delete($transition['transition'], $rid, $role);
+          workbench_email_delete($transition['transition'], $rid);
         }
       }
     }

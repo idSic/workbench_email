@@ -56,40 +56,6 @@ function workbench_email_schema() {
     'primary key' => array('wid'),
   );
 
-  $schema['workbench_email_transitions'] = array(
-    'description' => 'Custom table to hold email transitions',
-    'fields' => array(
-      'tid' => array(
-        'type' => 'serial',
-        'not null' => TRUE,
-        'description' => 'An auto increment id',
-      ),
-      'from_name'  => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'description' => 'The from transition state',
-      ),
-      'to_name' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'description' => 'The to transition state',
-      ),
-      'rid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'The user role ID',
-      ),
-    ),
-    'indexes' => array(
-      'rid'   => array('rid'),
-    ),
-    'primary key' => array('tid'),
-  );
-
   return $schema;
 }
 
@@ -105,21 +71,36 @@ function workbench_email_update_7001() {
   // Remove the set index from the 'workbench_emails' table.
   db_drop_index('workbench_emails', 'set');
 
-  // Remove the key index from the 'workbench_email_transitions' table.
-  db_drop_index('workbench_email_transitions', 'key');
-
-  // Add an rid index on the 'workbench_email_transitions' table.
-  db_add_index('workbench_email_transitions', 'rid', array('rid'));
-
   // Remove old primary key on 'workbench_emails' table.
   db_drop_primary_key('workbench_email');
 
   // Add new primary key on 'workbench_emails' table
   db_add_primary_key('workbench_email', array('wid'));
+}
 
-  // Remove old primary key on 'workbench_email_transitions' table.
-  db_drop_primary_key('workbench_email_transitions');
+/**
+ * Removes the NOT NULL constraint from the workbench_email
+ * table. Removes the workbench_email_transitions table
+ * from the schema.
+ */
+function workbench_email_update_7002() {
+  db_change_field('workbench_emails', 'subject', 'subject',
+    array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'description' => 'The subject of the email',
+    )
+  );
 
-  // Add new primary key on 'workbench_email_transitions' table
-  db_add_primary_key('workbench_email_transitions', array('tid'));
+  db_change_field('workbench_emails', 'message', 'message',
+    array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'description' => 'The message of the email',
+    )
+  );
+
+  db_drop_table('workbench_email_transitions');
 }

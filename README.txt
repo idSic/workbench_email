@@ -132,5 +132,4 @@ Workbench Email uses two tables to store emails and email transitions.
 * Implement hooks for specific situation (drupal_alter's)
 * Allow email select list to show up under all moderation areas
   (view draft, moderate)
-* Featurize workbench_emails
 
