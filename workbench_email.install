@@ -72,10 +72,15 @@ function workbench_email_update_7001() {
   db_drop_index('workbench_emails', 'set');
 
   // Remove old primary key on 'workbench_emails' table.
-  db_drop_primary_key('workbench_email');
+  db_drop_primary_key('workbench_emails');
 
-  // Add new primary key on 'workbench_emails' table
-  db_add_primary_key('workbench_email', array('wid'));
+  // Add the wid field to the 'workbench_emails' table.
+  $field_definition = array(
+    'type' => 'serial',
+    'not null' => TRUE,
+    'description' => 'An auto increment id',
+  );
+  db_add_field('workbench_emails', 'wid', $field_definition, array('primary key' => array('wid')));
 }
 
 /**
@@ -104,4 +109,19 @@ function workbench_email_update_7002() {
   );
 
   db_drop_table('workbench_email_transitions');
+}
+
+/**
+ * Adds the wid field properly.
+ */
+function workbench_email_update_7003() {
+  if (!db_field_exists('workbench_emails', 'wid')) {
+    // Add the wid field to the 'workbench_emails' table.
+    $field_definition = array(
+      'type' => 'serial',
+      'not null' => TRUE,
+      'description' => 'An auto increment id',
+    );
+    db_add_field('workbench_emails', 'wid', $field_definition, array('primary key' => array('wid')));
+  }
 }
