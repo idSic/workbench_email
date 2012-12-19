@@ -61,6 +61,7 @@ function workbench_email_features_export_render($module_name, $data) {
       ->fetchObject();
 
     if (!empty($item)) {
+      $item->role = $role->name;
       $items[$item->from_name . ':' . $item->to_name . ':' . $role->name] = $item;
     }
   }
