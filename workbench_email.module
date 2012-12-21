@@ -496,8 +496,8 @@ function workbench_email_delete_all() {
  */
 function workbench_email_create_form_element(&$form, $email_transition) {
   $users = workbench_email_get_users($email_transition->rid);
-  global $user;
   if ($users) {
+    global $user;
     $emails = array('0' => '- None -');
     foreach ($users as $uid => $account) {
       if ($user->mail != $account->mail) {
