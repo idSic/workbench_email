@@ -432,23 +432,31 @@ function workbench_email_get($transition = NULL, $rid = NULL) {
  *   Returns the TRUE or FALSE
  */
 function workbench_email_save($transition, $rid, $subject = NULL, $message = NULL) {
-  $query = db_merge('workbench_emails')
-    ->key(array(
+  $query = db_merge('workbench_emails');
+  $query->key(
+    array(
       'from_name' => $transition->from_name,
       'to_name' => $transition->to_name,
-      'rid' => $rid)
-    );
-  $query->fields(array(
-    'from_name' => $transition->from_name,
-    'to_name' => $transition->to_name,
-    'rid' => $rid
-  ));
+      'rid' => $rid
+    )
+  );
+
+  $query->fields(
+    array(
+      'from_name' => $transition->from_name,
+      'to_name' => $transition->to_name,
+      'rid' => $rid
+    )
+  );
+
   if ($subject) {
     $query->fields(array('subject' => $subject));
   }
+
   if ($message) {
     $query->fields(array('message' => $message));
   }
+
   $query->execute();
 }
 
