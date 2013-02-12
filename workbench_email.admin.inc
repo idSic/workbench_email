@@ -204,15 +204,13 @@ function workbench_email_transitions_form($form, &$form_state) {
     );
 
     foreach ($roles as $rid => $role) {
-      if (strpos($role, 'admin') === FALSE) {
-        $workbench_email = workbench_email_get($transition, $rid);
-        $element[$role] = array(
-          '#type' => 'checkbox',
-          '#title' => check_plain(t(ucwords($role))),
-          '#title_display' => 'invisible',
-          '#default_value' => $workbench_email ? TRUE : FALSE,
-        );
-      }
+      $workbench_email = workbench_email_get($transition, $rid);
+      $element[$role] = array(
+        '#type' => 'checkbox',
+        '#title' => check_plain(t(ucwords($role))),
+        '#title_display' => 'invisible',
+        '#default_value' => $workbench_email ? TRUE : FALSE,
+      );
     }
 
     $form['transitions'][] = $element;
@@ -247,10 +245,8 @@ function theme_workbench_email_transitions_form($variables) {
   $roles = workbench_email_determine_valid_roles();
   $role_names = array();
   foreach ($roles as $rid => $role) {
-    if (strpos($role, 'admin') === FALSE) {
-      $role_names[$rid] = ucwords($role);
-      $header[] = t("@role", array('@role' => ucwords($role)));
-    }
+    $role_names[$rid] = ucwords($role);
+    $header[] = t("@role", array('@role' => ucwords($role)));
   }
 
   $rows = array();
@@ -261,9 +257,7 @@ function theme_workbench_email_transitions_form($variables) {
     $row['data'][] = '--&gt;';
     $row['data']['to'] = drupal_render($element['to_name']);
     foreach ($roles as $rid => $role) {
-      if (strpos($role, 'admin') === FALSE) {
-        $row['data'][$role] = drupal_render($element[$role]);
-      }
+      $row['data'][$role] = drupal_render($element[$role]);
     }
     $rows[] = $row;
   }
