@@ -285,13 +285,11 @@ function workbench_email_transitions_form_submit($form, &$form_state) {
   $roles = workbench_email_determine_valid_roles();
   foreach ($form_state['values']['transitions'] as $transition) {
     foreach ($roles as $rid => $role) {
-      if (strpos($role, 'admin') === FALSE) {
-        if ($transition[$role]) {
-          workbench_email_save($transition['transition'], $rid);
-        }
-        else {
-          workbench_email_delete($transition['transition'], $rid);
-        }
+      if ($transition[$role]) {
+        workbench_email_save($transition['transition'], $rid);
+      }
+      else {
+        workbench_email_delete($transition['transition'], $rid);
       }
     }
   }
