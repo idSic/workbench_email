@@ -140,5 +140,7 @@ Workbench Email uses two tables to store emails and email transitions.
 * Remove rid from being exported in feature.
 * Integrate with Workbench Access
 * Add auto notify setting to fire email when state transition occurs.
+* Add a notify author role in the email transitions, so when it moves to
+  state "X", author is always notified automatically.
 
 
