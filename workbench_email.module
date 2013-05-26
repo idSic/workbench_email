@@ -3,6 +3,8 @@
  * @file
  * Code for the Workbench Email Module.
  */
+define('WORKBENCH_EMAIL_AUTHOR', -1);
+
 include_once 'workbench_email.forms.inc';
 
 /**
@@ -11,21 +13,13 @@ include_once 'workbench_email.forms.inc';
 function workbench_email_menu() {
   $items = array();
 
-  $items['admin/config/workbench/moderation/emails'] = array(
-    'title' => 'Emails',
+  // Module settings.
+  $items["admin/config/workbench/email"] = array(
+    'title' => 'Workbench Email',
+    'description' => 'Configure email moderation notification.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('workbench_email_form'),
     'access arguments' => array('administer workbench emails'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'workbench_email.admin.inc',
-  );
-
-  $items['admin/config/workbench/moderation/email-transitions'] = array(
-    'title' => 'Email Transitions',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('workbench_email_transitions_form'),
-    'access arguments' => array('administer workbench emails'),
-    'type' => MENU_LOCAL_TASK,
     'file' => 'workbench_email.admin.inc',
   );
 
@@ -58,7 +52,7 @@ function workbench_email_module_implements_alter(&$implementations, $hook) {
  */
 function workbench_email_theme() {
   return array(
-    'workbench_email_transitions_form' => array(
+    'workbench_email_form' => array(
       'file' => 'workbench_email.admin.inc',
       'render element' => 'form',
     ),
@@ -233,6 +227,7 @@ function workbench_email_determine_valid_roles() {
       $valid_roles[$rid] = $role;
     }
   }
+  $valid_roles[0] = 'author';
   return $valid_roles;
 }
 
@@ -290,16 +285,19 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
  * @return email
  *   Returns the workbench_email object or FALSE
  */
-function workbench_email_get($transition = NULL, $rid = NULL) {
+function workbench_email_get($transition = NULL, $rid = NULL, $author = FALSE) {
   $emails = array();
   $query = db_select('workbench_emails', 'wve')
-    ->fields('wve', array('rid', 'from_name', 'to_name', 'subject', 'message'));
+    ->fields('wve', array('rid', 'from_name', 'to_name', 'subject', 'message', 'author'));
   if ($transition) {
     $query->condition('wve.from_name', $transition->from_name);
     $query->condition('wve.to_name', $transition->to_name);
   }
   if ($rid) {
     $query->condition('wve.rid', $rid);
+  }
+  if ($author) {
+    $query->condition('wve.author', $author);
   }
   $result = $query->execute();
   foreach ($result as $row) {
@@ -326,13 +324,13 @@ function workbench_email_get($transition = NULL, $rid = NULL) {
  * @return db_merge
  *   Returns the TRUE or FALSE
  */
-function workbench_email_save($transition, $rid, $subject = NULL, $message = NULL) {
+function workbench_email_save($transition, $rid, $subject = NULL, $message = NULL, $author = FALSE) {
   $query = db_merge('workbench_emails');
   $query->key(
     array(
       'from_name' => $transition->from_name,
       'to_name' => $transition->to_name,
-      'rid' => $rid
+      'rid' => $rid,
     )
   );
 
@@ -340,7 +338,7 @@ function workbench_email_save($transition, $rid, $subject = NULL, $message = NUL
     array(
       'from_name' => $transition->from_name,
       'to_name' => $transition->to_name,
-      'rid' => $rid
+      'rid' => $rid,
     )
   );
 
@@ -350,6 +348,10 @@ function workbench_email_save($transition, $rid, $subject = NULL, $message = NUL
 
   if ($message) {
     $query->fields(array('message' => $message));
+  }
+
+  if ($author) {
+    $query->fields(array('author' => $author));
   }
 
   $query->execute();

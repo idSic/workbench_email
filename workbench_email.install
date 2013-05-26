@@ -49,6 +49,13 @@ function workbench_email_schema() {
         'size' => 'big',
         'translatable' => TRUE,
       ),
+      'author' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The author setting',
+      )
     ),
     'indexes' => array(
       'rid'        => array('rid'),
@@ -60,6 +67,8 @@ function workbench_email_schema() {
 }
 
 /**
+ * Implements hook_update_N().
+ *
  * Removes string indexes from the 'workbench_emails' and
  * 'workbench_email_transitions' tables. Also adds the 'rid' index
  * to the 'workbench_email_transitions' table.
@@ -84,6 +93,8 @@ function workbench_email_update_7001() {
 }
 
 /**
+ * Implements hook_update_N().
+ *
  * Removes the not null constraint from the fields
  * subject and message within workbench_emails. Also,
  * removes the workbench_email_transitions table from
@@ -112,6 +123,8 @@ function workbench_email_update_7002() {
 }
 
 /**
+ * Implements hook_update_N().
+ *
  * Adds the wid field properly.
  */
 function workbench_email_update_7003() {
@@ -127,6 +140,8 @@ function workbench_email_update_7003() {
 }
 
 /**
+ * Implements hook_update_N().
+ *
  * Fixes issue with NULL constraint on subject / message
  * fields.
  */
@@ -151,4 +166,21 @@ function workbench_email_update_7004() {
   );
 
   db_drop_table('workbench_email_transitions');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Add author flag to table
+ *
+ */
+function workbench_email_update_7005() {
+  $field = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'The author setting'
+  );
+  db_add_field('workbench_emails', 'author', $field);
 }
