@@ -4,3 +4,4 @@ package = Workbench
 core = 7.x
 dependencies[] = workbench_moderation
 dependencies[] = token
+dependencies[] = chosen

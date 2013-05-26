@@ -1,0 +1,164 @@
+<?php
+/**
+ * @file
+ * Code for the Workbench Email Module.
+ */
+
+/**
+ * Implements hook_node_form_alter().
+ *
+ * Determines the current state and next state. Depending on that criteria
+ * builds a form element(s) to allow the user to select users to send
+ * an email to.
+ *
+ * @param array $form
+ *   The form array
+ *
+ * @param array $form_state
+ *   The form_state array
+ */
+function workbench_email_form_node_form_alter(&$form, $form_state) {
+  if (workbench_moderation_node_type_moderated($form['type']['#value'])) {
+    $available = FALSE;
+    // Workbench Moderation uses "options" fieldset in favor of "revision information"
+    // if "administer roles" perm is given to content moderator.
+    if (isset($form['revision_information']['workbench_moderation_state_new'])) {
+      $wrapper_id = 'revision_information';
+      $available = TRUE;
+    }
+    else if (isset($form['options']['workbench_moderation_state_new'])) {
+      $wrapper_id = 'options';
+      $available = TRUE;
+    }
+
+    if (!$available) {
+      return;
+    }
+
+    $form[$wrapper_id]['workbench_moderation_state_new']['#ajax'] = array(
+      'callback' => 'workbench_email_form_node_callback',
+      'wrapper' => 'wv-workflow-form-node',
+      'effect' => 'fade',
+      'event' => 'change',
+    );
+
+    $form[$wrapper_id]['workflow_email'] = array(
+      '#prefix' => '<div id="wv-workflow-form-node">',
+      '#suffix' => '</div>',
+      '#tree' => TRUE,
+    );
+
+    // Determine current state.
+    if (isset($form['#node']->workbench_moderation['current']->state)) {
+      $current_from_state = $form['#node']->workbench_moderation['current']->state;
+    }
+    else {
+      $current_from_state = variable_get('workbench_moderation_default_state_' . $form['type']['#value'], workbench_moderation_state_none());
+    }
+    if ($current_from_state == workbench_moderation_state_published()) {
+      $current_from_state = workbench_moderation_state_none();
+    }
+
+    // Determine form next state for the ajax.
+    if (empty($form_state['values'])) {
+      $form_moderation_state = $current_from_state;
+    }
+    if (!empty($form_state['values']) &&
+      isset($form_state['values']['workbench_moderation_state_new'])) {
+      $form_moderation_state = $form_state['values']['workbench_moderation_state_new'];
+    }
+    if (!empty($form_state['values']) &&
+      isset($form_state['values'][$wrapper_id]['workbench_moderation_state_new'])) {
+      $form_moderation_state = $form_state['values'][$wrapper_id]['workbench_moderation_state_new'];
+    }
+
+    $workbench_emails = workbench_email_get();
+    foreach ($workbench_emails as $transition => $email_roles) {
+      foreach ($email_roles as $rid => $email_transition) {
+        if ($email_transition->from_name == $current_from_state
+          && $email_transition->to_name == $form_moderation_state) {
+          workbench_email_create_form_element($form, $email_transition);
+        }
+      }
+    }
+
+    $form['actions']['submit']['#submit'][] = 'workbench_email_notification_submit';
+  }
+}
+
+/**
+ *  Ajax callback function, targets the workflow_email container.
+ *
+ * @param array $form
+ *   The form array
+ *
+ * @param array $form_state
+ *   The form_state array
+ */
+function workbench_email_form_node_callback($form, $form_state) {
+  if ($form['options']['#access']) {
+    return $form['options']['workflow_email'];
+  }
+  return $form['revision_information']['workflow_email'];
+}
+
+
+/**
+ * Submit handler for the workflow_email form element.
+ *
+ * Sends emails to the specific users selected in the form element.
+ *
+ * @param array $form
+ *   The form array
+ *
+ * @param array $form_state
+ *   The form_state array
+ *
+ */
+function workbench_email_notification_submit($form, &$form_state) {
+  if (isset($form_state['values']['workflow_email'])) {
+    ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
+    foreach ($form_state['values']['workflow_email'] as $rid => $role_emails) {
+      foreach ($role_emails as $email) {
+        $email_transition = $form[$wrapper_id]['workflow_email'][$rid]['#hidden'];
+        workbench_email_mail_send($email, $email_transition, $form_state['node']);
+      }
+    }
+  }
+}
+
+/**
+ * Create the email selection form element.
+ *
+ * Creates the appropriate multi select list for a given role and stores
+ * some email transition information into the form element.
+ *
+ * @param array $form
+ *   The form array passed by reference
+ *
+ * @param object $params
+ *   A object containing information relating to the email transition
+ */
+function workbench_email_create_form_element(&$form, $email_transition) {
+  $users = workbench_email_get_users($email_transition->rid);
+  if ($users) {
+    global $user;
+    $emails = array('0' => '- None -');
+    foreach ($users as $uid => $account) {
+      if ($user->mail != $account->mail) {
+        $emails[$account->mail] = $account->name;
+      }
+    }
+    $role = user_role_load($email_transition->rid);
+    ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
+    $form[$wrapper_id]['workflow_email'][$role->rid] = array(
+      '#type' => 'select',
+      '#title' => t("@role_name", array('@role_name' => ucwords($role->name))),
+      '#options' => $emails,
+      '#description' => t('Select one or more users to notify'),
+      '#multiple' => TRUE,
+      '#hidden' => $email_transition,
+      '#attributes' => array('class' => array('chosen-widget')),
+    );
+  }
+}
