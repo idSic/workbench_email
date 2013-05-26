@@ -115,12 +115,12 @@ function workbench_email_form($form, &$form_state) {
       '#tree' => TRUE,
     );
   }
-
-  $form['transitions'] = array(
+  drupal_add_js(drupal_get_path('module', 'workbench_email') . '/js/workbench_email.js');
+  $form['transitions_container'] = array(
     '#type' => 'fieldset',
     '#title' => t('Transitions'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#collapsed' => FALSE,
   );
 
   foreach ($transitions as $transition) {
@@ -140,99 +140,121 @@ function workbench_email_form($form, &$form_state) {
     foreach ($roles as $rid => $role) {
       ($role == 'author' ? $author = TRUE : $author = FALSE);
       $workbench_email = workbench_email_get($transition, $rid, $author);
-      $element[$role] = array(
+      $element[$role]['notify'] = array(
         '#type' => 'checkbox',
-        '#title' => check_plain(t(ucwords($role))),
-        '#title_display' => 'invisible',
+        '#title' => check_plain(t('Notify')),
         '#default_value' => $workbench_email ? TRUE : FALSE,
+        '#prefix' => '<div class="workbench-email-notify-container">',
+        '#suffix' => '</div>',
+        '#attributes' => array('class' => array('workbench-email-notify-checkbox')),
+      );
+
+      // if auto notify
+      $display = 'display:none';
+      if ($workbench_email) {
+        $display = 'display:block';
+      }
+
+      $element[$role]['auto_notify'] = array(
+        '#type' => 'checkbox',
+        '#title' => check_plain(t('Auto Notify')),
+        '#default_value' => $workbench_email ? TRUE : FALSE,
+        '#prefix' => '<div class="workbench-email-auto-notify-container" style="' . $display . '">',
+        '#suffix' => '</div>',
+        '#attributes' => array('class' => array('workbench-email-auto-notify-checkbox')),
       );
     }
-
     $form['transitions'][] = $element;
   }
 
-  $form['emails'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Emails'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+  $form['transitions_container']['help_text_notify'] = array(
+    '#markup' => t('<strong>Notify</strong>: The state change will allow
+    the user to select one or many individuals from the role to notify.
+    In the case of the author, the single user will be an option for
+    notification within the node edit form.<br />'),
+  );
+  $form['transitions_container']['help_text_auto_notify'] = array(
+    '#markup' => t('<strong>Auto Notify</strong>: The state change will
+    automatically notify all users within the role to be notified without
+    displaying an option on the node edit form. In the case of the author,
+    the single user is notified automatically.'),
   );
 
   $workbench_emails = workbench_email_get();
-  $state_labels = workbench_moderation_state_labels();
-  foreach ($workbench_emails as $transition_label => $email_transition_set) {
-    $state_label = $email_transition_set;
-    $transition = array_shift($state_label);
-    $transition_title = t(ucwords($state_labels[$transition->from_name] .' To '.$state_labels[$transition->to_name]));
-    $form['emails'][$transition_label] = array(
+  if ($workbench_emails) {
+    $form['emails'] = array(
       '#type' => 'fieldset',
-      '#title' => check_plain($transition_title),
+      '#title' => t('Emails'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
 
-    foreach ($email_transition_set as $rid => $email_transition) {
-      $subject = $email_transition->subject;
-      $message = $email_transition->message;
-      $role = new stdClass();
-      $role->name = 'author';
-      $role->rid = 0;
-      if ($rid) {
-        $role = user_role_load($rid);
-      }
-      $params['rid'] = $rid;
-      $params['role'] = $role->name;
-      $params['from_state'] = $email_transition->from_name;
-      $params['to_state'] = $email_transition->to_name;
-
-      $form['emails'][$transition_label][$rid] = array(
+    $state_labels = workbench_moderation_state_labels();
+    foreach ($workbench_emails as $transition_label => $email_transition_set) {
+      $state_label = $email_transition_set;
+      $transition = array_shift($state_label);
+      $transition_title = t(ucwords($state_labels[$transition->from_name] .' To '.$state_labels[$transition->to_name]));
+      $form['emails'][$transition_label] = array(
         '#type' => 'fieldset',
-        '#title' => check_plain(t("Email @role_name",
-          array('@role_name' => ucwords($role->name)))),
+        '#title' => check_plain($transition_title),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
 
-      $form['emails'][$transition_label][$rid]['subject'] = array(
-        '#type' => 'textfield',
-        '#default_value' => $subject,
-        '#title' => t('Subject'),
-        '#maxlength' => 255,
+      foreach ($email_transition_set as $rid => $email_transition) {
+        $subject = $email_transition->subject;
+        $message = $email_transition->message;
+        $role = new stdClass();
+        $role->name = 'author';
+        $role->rid = 0;
+        if ($rid) {
+          $role = user_role_load($rid);
+        }
+        $params['rid'] = $rid;
+        $params['role'] = $role->name;
+        $params['from_state'] = $email_transition->from_name;
+        $params['to_state'] = $email_transition->to_name;
+
+        $form['emails'][$transition_label][$rid] = array(
+          '#type' => 'fieldset',
+          '#title' => check_plain(t("Email @role_name",
+            array('@role_name' => ucwords($role->name)))),
+          '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
+        );
+
+        $form['emails'][$transition_label][$rid]['subject'] = array(
+          '#type' => 'textfield',
+          '#default_value' => $subject,
+          '#title' => t('Subject'),
+          '#maxlength' => 255,
+        );
+
+        $form['emails'][$transition_label][$rid]['message'] = array(
+          '#type' => 'textarea',
+          '#default_value' => $message,
+          '#title' => t('Message'),
+          '#size' => 30,
+        );
+      }
+    }
+
+    if ($workbench_emails) {
+      $form['#tree'] = TRUE;
+
+      $form['emails']['token_set'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Available Tokens'),
+        '#collapsible' => TRUE,
       );
 
-      $form['emails'][$transition_label][$rid]['message'] = array(
-        '#type' => 'textarea',
-        '#default_value' => $message,
-        '#title' => t('Message'),
-        '#size' => 30,
+      $form['emails']['token_set']['tokens'] = array(
+        '#theme' => 'token_tree',
+        '#token_types' => array('node', 'user'),
+        '#click_insert' => TRUE,
       );
     }
   }
-
-  if ($workbench_emails) {
-    $form['#tree'] = TRUE;
-
-    $form['emails']['token_set'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Available Tokens'),
-      '#collapsible' => TRUE,
-    );
-
-    $form['emails']['token_set']['tokens'] = array(
-      '#theme' => 'token_tree',
-      '#token_types' => array('node', 'user'),
-      '#click_insert' => TRUE,
-    );
-  }
-  else {
-//    drupal_set_message(t('No email transitions have been defined yet. Visit the
-//                         <a href="@url"> email transition configuration page</a>',
-//      array(
-//        '@url' =>
-//        url('admin/config/workbench/moderation/email-transitions'))), 'warning');
-//    $form['#disabled'] = TRUE;
-  }
-
 
   $form['submit'] = array(
     '#type' => 'submit',
@@ -270,22 +292,31 @@ function theme_workbench_email_form($variables) {
   $rows = array();
   foreach (element_children($form['transitions']) as $key) {
     $element = &$form['transitions'][$key];
-    $row = array('data' => array());
-    $row['data']['from'] = drupal_render($element['from_name']);
-    $row['data'][] = '--&gt;';
-    $row['data']['to'] = drupal_render($element['to_name']);
-    foreach ($roles as $rid => $role) {
-      $row['data'][$role] = drupal_render($element[$role]);
+    if (!isset($element['#markup'])) {
+      $row = array('data' => array());
+      $row['data']['from'] = drupal_render($element['from_name']);
+      $row['data'][] = '--&gt;';
+      $row['data']['to'] = drupal_render($element['to_name']);
+      foreach ($roles as $rid => $role) {
+        $data = drupal_render($element[$role]['notify']);
+        $data .= drupal_render($element[$role]['auto_notify']);
+        $row['data'][$role] = $data;
+      }
+      $rows[] = $row;
     }
-    $rows[] = $row;
   }
 
   $table = theme('table', array(
-                                 'header' => $header,
-                                 'rows' => $rows,
-                                 'attributes' => array('class' => array('width-auto'))));
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array(
+      'class' => array('width-auto'),
+      'id' =>  array('workbench-email-table')
+      )
+    )
+  );
 
-  $form['transitions']['#value'] = $table;
+  $form['transitions_container']['#value'] = $table;
   $output = drupal_render_children($form);
   return $output;
 }
@@ -336,12 +367,16 @@ function workbench_email_form_submit($form, &$form_state) {
   $roles = workbench_email_determine_valid_roles();
   foreach ($form_state['values']['transitions'] as $transition) {
     foreach ($roles as $rid => $role) {
-      if ($transition[$role]) {
+      if ($transition[$role]['notify']) {
         ($rid == FALSE && $role == 'author' ? $author = TRUE : $author = FALSE);
+        $automatic = $transition[$role]['auto_notify'];
         $transition_label = $transition['transition']->from_name . '_to_' . $transition['transition']->to_name;
-        $message = $form_state['values']['emails'][$transition_label][$rid]['message'];
-        $subject = $form_state['values']['emails'][$transition_label][$rid]['subject'];
-        workbench_email_save($transition['transition'], $rid, $subject, $message, $author);
+        $subject = NULL; $message = NULL;
+        if (isset($form_state['values']['emails'])) {
+          $message = $form_state['values']['emails'][$transition_label][$rid]['message'];
+          $subject = $form_state['values']['emails'][$transition_label][$rid]['subject'];
+        }
+        workbench_email_save($transition['transition'], $rid, $subject, $message, $author, $automatic);
       }
       else {
         workbench_email_delete($transition['transition'], $rid);

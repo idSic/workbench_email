@@ -184,3 +184,20 @@ function workbench_email_update_7005() {
   );
   db_add_field('workbench_emails', 'author', $field);
 }
+
+/**
+ * Implements hook_update_N().
+ *
+ * Add automatic flag to table
+ *
+ */
+function workbench_email_update_7006() {
+  $field = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'The automatic setting'
+  );
+  db_add_field('workbench_emails', 'automatic', $field);
+}

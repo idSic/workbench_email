@@ -198,6 +198,7 @@ function workbench_email_determine_moderation_permissions() {
  */
 function workbench_email_determine_valid_roles() {
   $valid_roles = array();
+  $valid_roles[0] = 'author';
   $types = drupal_map_assoc(workbench_moderation_moderate_node_types());
   $all_types = node_type_get_types();
   foreach ($types as $type) {
@@ -208,7 +209,6 @@ function workbench_email_determine_valid_roles() {
   $roles = user_roles();
   foreach ($roles AS $rid => $role) {
     // Get a full list of this role's permissions.
-    $actual_permissions_set = array();
     $actual_permissions_set = user_role_permissions(array_filter(array(
       $rid => TRUE,
       DRUPAL_AUTHENTICATED_RID => ($rid != DRUPAL_ANONYMOUS_RID),
@@ -227,7 +227,6 @@ function workbench_email_determine_valid_roles() {
       $valid_roles[$rid] = $role;
     }
   }
-  $valid_roles[0] = 'author';
   return $valid_roles;
 }
 
@@ -258,7 +257,6 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
       continue;
     }
     // Get a full list of this role's permissions.
-    $actual_permissions = array();
     $actual_permissions = user_role_permissions(array_filter(array(
       $rid => TRUE,
       DRUPAL_AUTHENTICATED_RID => ($rid != DRUPAL_ANONYMOUS_RID),
@@ -285,10 +283,10 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
  * @return email
  *   Returns the workbench_email object or FALSE
  */
-function workbench_email_get($transition = NULL, $rid = NULL, $author = FALSE) {
+function workbench_email_get($transition = NULL, $rid = NULL, $author = FALSE, $automatic = FALSE) {
   $emails = array();
   $query = db_select('workbench_emails', 'wve')
-    ->fields('wve', array('rid', 'from_name', 'to_name', 'subject', 'message', 'author'));
+    ->fields('wve', array('rid', 'from_name', 'to_name', 'subject', 'message', 'author', 'automatic'));
   if ($transition) {
     $query->condition('wve.from_name', $transition->from_name);
     $query->condition('wve.to_name', $transition->to_name);
@@ -298,6 +296,9 @@ function workbench_email_get($transition = NULL, $rid = NULL, $author = FALSE) {
   }
   if ($author) {
     $query->condition('wve.author', $author);
+  }
+  if ($automatic) {
+    $query->condition('wve.automatic', $automatic);
   }
   $result = $query->execute();
   foreach ($result as $row) {
@@ -324,7 +325,7 @@ function workbench_email_get($transition = NULL, $rid = NULL, $author = FALSE) {
  * @return db_merge
  *   Returns the TRUE or FALSE
  */
-function workbench_email_save($transition, $rid, $subject = NULL, $message = NULL, $author = FALSE) {
+function workbench_email_save($transition, $rid, $subject = NULL, $message = NULL, $author = FALSE, $automatic = FALSE) {
   $query = db_merge('workbench_emails');
   $query->key(
     array(
@@ -345,13 +346,14 @@ function workbench_email_save($transition, $rid, $subject = NULL, $message = NUL
   if ($subject) {
     $query->fields(array('subject' => $subject));
   }
-
   if ($message) {
     $query->fields(array('message' => $message));
   }
-
   if ($author) {
     $query->fields(array('author' => $author));
+  }
+  if ($automatic) {
+    $query->fields(array('automatic' => $automatic));
   }
 
   $query->execute();
