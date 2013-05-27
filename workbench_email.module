@@ -101,6 +101,40 @@ function workbench_email_features_api() {
 }
 
 /**
+ * Implements hook_workbench_moderation_transition().
+ *
+ * @param $node
+ *  The node that is being transitioned.
+ *
+ * @param $previous_state
+ *  The state of the revision before the transition occurred.
+ *
+ * @param $new_state
+ *  The new state of the revision.
+ */
+function workbench_email_workbench_moderation_transition($node, $previous_state, $new_state) {
+  $transition = new stdClass();
+  $transition->from_name = $previous_state;
+  $transition->to_name = $new_state;
+  $workbench_emails = workbench_email_get($transition, 0, 0, 1);
+  foreach ($workbench_emails as $transition_label => $email_transition_set) {
+    foreach ($email_transition_set as $rid => $email_transition) {
+      $accounts = array();
+      if ($email_transition->rid == 0) {
+        $accounts = array(user_load($node->uid));
+      }
+      else {
+        $accounts = workbench_email_get_users($email_transition->rid);
+      }
+      foreach ($accounts as $account) {
+        workbench_email_mail_send($account->mail, $email_transition, $node);
+      }
+    }
+  }
+}
+
+
+/**
  * Determines the emails attributes.
  *
  * Sets the emails subject / message and sends the email.
@@ -283,7 +317,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
  * @return email
  *   Returns the workbench_email object or FALSE
  */
-function workbench_email_get($transition = NULL, $rid = NULL, $author = FALSE, $automatic = FALSE) {
+function workbench_email_get($transition = NULL, $rid = NULL, $author = 0, $automatic = 0) {
   $emails = array();
   $query = db_select('workbench_emails', 'wve')
     ->fields('wve', array('rid', 'from_name', 'to_name', 'subject', 'message', 'author', 'automatic'));

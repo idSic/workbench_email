@@ -128,19 +128,22 @@ Workbench Email uses two tables to store emails and email transitions.
 ----
 7.  Feature roadmap
 
-* Allow content type specific email transitions / emails
-* Implement hooks for specific situation (drupal_alter's)
-* Allow email select list to show up under all moderation areas
+* Allow content type specific email transitions / emails - DELAY
+* Implement hooks for specific situation (drupal_alter's) - WHERE???
+* Allow email select list to show up under all moderation areas - BLOCKED
   (view draft, moderate) - dependant on http://drupal.org/node/1515110
-* Apply chosen.js to select list
-* Rework admin pages, create one section called email, define email
-  transitions, ajax submit, inject emails section (ajaxify form)
-* Add setting for role and / or user based notification
-* Add an all users option inside the select list, allowing for mass email.
-* Remove rid from being exported in feature.
-* Integrate with Workbench Access
-* Add auto notify setting to fire email when state transition occurs.
+* Integrate with Workbench Access - START
+* Fix error messages on sending (multiple, should watchdog em) - START
+
+
 * Add a notify author role in the email transitions, so when it moves to
-  state "X", author is always notified automatically.
+  state "X", author is always notified automatically. - IN PROG
+* Rework admin pages, create one section called email, define email
+  transitions, ajax submit, inject emails section (ajaxify form) - IN PROG
+* Add setting for role and / or user based notification - IN PROG
+* Add an all users option inside the select list, allowing for mass email. - IN PROG
+* Add auto notify setting to fire email when state transition occurs. - IN PROG
 
 
+* Remove rid from being exported in feature. - DONE
+* Apply chosen.js to select list - DONE

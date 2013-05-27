@@ -36,7 +36,6 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       return;
     }
 
-    drupal_add_css(drupal_get_path('module', 'workbench_email') . '/css/workbench_email.css');
     $form[$wrapper_id]['workbench_moderation_state_new']['#ajax'] = array(
       'callback' => 'workbench_email_form_node_callback',
       'wrapper' => 'workbench-email-form-node',
@@ -76,7 +75,8 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
     foreach ($workbench_emails as $transition => $email_roles) {
       foreach ($email_roles as $rid => $email_transition) {
         if ($email_transition->from_name == $current_from_state
-          && $email_transition->to_name == $form_moderation_state) {
+          && $email_transition->to_name == $form_moderation_state
+          && !$email_transition->automatic) {
           workbench_email_create_form_element($form, $email_transition);
         }
       }
@@ -174,15 +174,6 @@ function workbench_email_create_form_element(&$form, $email_transition) {
         $role = user_role_load($email_transition->rid);
       }
 
-      $prefix = '';
-      $suffix = '';
-      $attributes = array('class' => array('chosen-widget'));
-      if ($email_transition->automatic) {
-        $prefix = '<div class="workbench-email-hide">';
-        $suffix = '</div>';
-        $attributes = array();
-      }
-
       ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
       $form[$wrapper_id]['workbench_email'][$role->rid] = array(
         '#type' => 'select',
@@ -191,10 +182,7 @@ function workbench_email_create_form_element(&$form, $email_transition) {
         '#description' => $description,
         '#multiple' => TRUE,
         '#hidden' => $email_transition,
-        '#attributes' => $attributes,
-        '#prefix' => $prefix,
-        '#suffix' => $suffix,
-        '#auto' => $email_transition->automatic
+        '#attributes' => array('class' => array('chosen-widget'))
       );
     }
   }
