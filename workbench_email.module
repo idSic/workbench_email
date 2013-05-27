@@ -117,7 +117,7 @@ function workbench_email_features_api() {
  */
 function workbench_email_mail_send($email, $email_transition, $node) {
   $module = 'workbench_email';
-  $key = 'workflow_email';
+  $key = 'workbench_email';
 
   $to = $email;
   $from = variable_get('site_mail', 'admin@example.com');
@@ -150,7 +150,7 @@ function workbench_email_mail_send($email, $email_transition, $node) {
  */
 function workbench_email_mail($key, &$message, $params) {
   switch ($key) {
-    case 'workflow_email':
+    case 'workbench_email':
       $message['subject'] = t(token_replace($params['subject'], $params));
       $message['body'][] = t(token_replace($params['message'], $params));
       break;
@@ -325,7 +325,7 @@ function workbench_email_get($transition = NULL, $rid = NULL, $author = FALSE, $
  * @return db_merge
  *   Returns the TRUE or FALSE
  */
-function workbench_email_save($transition, $rid, $subject = NULL, $message = NULL, $author = FALSE, $automatic = FALSE) {
+function workbench_email_save($transition, $rid, $subject = NULL, $message = NULL, $author = 0, $automatic = 0) {
   $query = db_merge('workbench_emails');
   $query->key(
     array(
@@ -349,13 +349,8 @@ function workbench_email_save($transition, $rid, $subject = NULL, $message = NUL
   if ($message) {
     $query->fields(array('message' => $message));
   }
-  if ($author) {
-    $query->fields(array('author' => $author));
-  }
-  if ($automatic) {
-    $query->fields(array('automatic' => $automatic));
-  }
-
+  $query->fields(array('author' => $author));
+  $query->fields(array('automatic' => $automatic));
   $query->execute();
 }
 

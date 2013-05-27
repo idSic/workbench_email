@@ -138,7 +138,7 @@ function workbench_email_form($form, &$form_state) {
     );
 
     foreach ($roles as $rid => $role) {
-      ($role == 'author' ? $author = TRUE : $author = FALSE);
+      ($role == 'author' ? $author = 1 : $author = 0);
       $workbench_email = workbench_email_get($transition, $rid, $author);
       $element[$role]['notify'] = array(
         '#type' => 'checkbox',
@@ -149,16 +149,19 @@ function workbench_email_form($form, &$form_state) {
         '#attributes' => array('class' => array('workbench-email-notify-checkbox')),
       );
 
+      $default_value = 0;
+      if (isset($workbench_email[$transition->from_name . '_to_' . $transition->to_name][$rid])) {
+        $default_value = $workbench_email[$transition->from_name . '_to_' . $transition->to_name][$rid]->automatic;
+      }
       // if auto notify
       $display = 'display:none';
       if ($workbench_email) {
         $display = 'display:block';
       }
-
       $element[$role]['auto_notify'] = array(
         '#type' => 'checkbox',
         '#title' => check_plain(t('Auto Notify')),
-        '#default_value' => $workbench_email ? TRUE : FALSE,
+        '#default_value' => $default_value ? TRUE : FALSE,
         '#prefix' => '<div class="workbench-email-auto-notify-container" style="' . $display . '">',
         '#suffix' => '</div>',
         '#attributes' => array('class' => array('workbench-email-auto-notify-checkbox')),
@@ -177,18 +180,26 @@ function workbench_email_form($form, &$form_state) {
     '#markup' => t('<strong>Auto Notify</strong>: The state change will
     automatically notify all users within the role to be notified without
     displaying an option on the node edit form. In the case of the author,
-    the single user is notified automatically.'),
+    the single user is notified automatically. Note that "Notify" must be
+    selected as well.<br />'),
   );
 
   $workbench_emails = workbench_email_get();
+  $style = 'display:none';
   if ($workbench_emails) {
-    $form['emails'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Emails'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
+    $style = 'display:block';
+  }
+  $form['emails'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Emails'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('style' => $style),
+    '#prefix' => '<div id="workbench-email-emails-container">',
+    '#suffix' => '</div>'
+  );
 
+  if ($workbench_emails) {
     $state_labels = workbench_moderation_state_labels();
     foreach ($workbench_emails as $transition_label => $email_transition_set) {
       $state_label = $email_transition_set;
@@ -259,9 +270,30 @@ function workbench_email_form($form, &$form_state) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save Configuration'),
+    '#ajax' => array(
+      'callback' => 'workbench_email_ajax_form_submit',
+      'wrapper' => 'workbench-email-emails-container',
+      'effect' => 'fade',
+    ),
   );
 
   return $form;
+}
+
+/**
+ * Ajax form submission callback.
+ *
+ * Clears out the messages and rebuilds the form.
+ *
+ * @param $form
+ * @param $form_state
+ *
+ * @return mixed
+ */
+function workbench_email_ajax_form_submit(&$form, &$form_state) {
+  $form = drupal_rebuild_form('workbench_email_form', $form_state, $form);
+  drupal_get_messages();
+  return $form['emails'];
 }
 
 /**
@@ -368,7 +400,7 @@ function workbench_email_form_submit($form, &$form_state) {
   foreach ($form_state['values']['transitions'] as $transition) {
     foreach ($roles as $rid => $role) {
       if ($transition[$role]['notify']) {
-        ($rid == FALSE && $role == 'author' ? $author = TRUE : $author = FALSE);
+        ($role == 'author' ? $author = 1 : $author = 0);
         $automatic = $transition[$role]['auto_notify'];
         $transition_label = $transition['transition']->from_name . '_to_' . $transition['transition']->to_name;
         $subject = NULL; $message = NULL;

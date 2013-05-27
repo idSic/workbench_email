@@ -43,7 +43,7 @@ function workbench_email_features_export($data, &$export, $module_name) {
 /**
  * Implements COMPONENT_features_export_render().
  *
- * Render workflow email transitions as code.
+ * Render workbench email transitions as code.
  */
 function workbench_email_features_export_render($module_name, $data) {
   $items = array();

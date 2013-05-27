@@ -20,6 +20,7 @@
 function workbench_email_form_node_form_alter(&$form, $form_state) {
   if (workbench_moderation_node_type_moderated($form['type']['#value'])) {
     $available = FALSE;
+    $wrapper_id = 'revision_information';
     // Workbench Moderation uses "options" fieldset in favor of "revision information"
     // if "administer roles" perm is given to content moderator.
     if (isset($form['revision_information']['workbench_moderation_state_new'])) {
@@ -35,15 +36,16 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       return;
     }
 
+    drupal_add_css(drupal_get_path('module', 'workbench_email') . '/css/workbench_email.css');
     $form[$wrapper_id]['workbench_moderation_state_new']['#ajax'] = array(
       'callback' => 'workbench_email_form_node_callback',
-      'wrapper' => 'wv-workflow-form-node',
+      'wrapper' => 'workbench-email-form-node',
       'effect' => 'fade',
       'event' => 'change',
     );
 
-    $form[$wrapper_id]['workflow_email'] = array(
-      '#prefix' => '<div id="wv-workflow-form-node">',
+    $form[$wrapper_id]['workbench_email'] = array(
+      '#prefix' => '<div id="workbench-email-form-node">',
       '#suffix' => '</div>',
       '#tree' => TRUE,
     );
@@ -60,9 +62,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
     }
 
     // Determine form next state for the ajax.
-    if (empty($form_state['values'])) {
-      $form_moderation_state = $current_from_state;
-    }
+    $form_moderation_state = $current_from_state;
     if (!empty($form_state['values']) &&
       isset($form_state['values']['workbench_moderation_state_new'])) {
       $form_moderation_state = $form_state['values']['workbench_moderation_state_new'];
@@ -87,7 +87,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
 }
 
 /**
- *  Ajax callback function, targets the workflow_email container.
+ *  Ajax callback function, targets the workbench_email container.
  *
  * @param array $form
  *   The form array
@@ -97,14 +97,14 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
  */
 function workbench_email_form_node_callback($form, $form_state) {
   if ($form['options']['#access']) {
-    return $form['options']['workflow_email'];
+    return $form['options']['workbench_email'];
   }
-  return $form['revision_information']['workflow_email'];
+  return $form['revision_information']['workbench_email'];
 }
 
 
 /**
- * Submit handler for the workflow_email form element.
+ * Submit handler for the workbench_email form element.
  *
  * Sends emails to the specific users selected in the form element.
  *
@@ -116,11 +116,11 @@ function workbench_email_form_node_callback($form, $form_state) {
  *
  */
 function workbench_email_notification_submit($form, &$form_state) {
-  if (isset($form_state['values']['workflow_email'])) {
+  if (isset($form_state['values']['workbench_email'])) {
     ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
-    foreach ($form_state['values']['workflow_email'] as $rid => $role_emails) {
+    foreach ($form_state['values']['workbench_email'] as $rid => $role_emails) {
       foreach ($role_emails as $email) {
-        $email_transition = $form[$wrapper_id]['workflow_email'][$rid]['#hidden'];
+        $email_transition = $form[$wrapper_id]['workbench_email'][$rid]['#hidden'];
         workbench_email_mail_send($email, $email_transition, $form_state['node']);
       }
     }
@@ -140,25 +140,62 @@ function workbench_email_notification_submit($form, &$form_state) {
  *   A object containing information relating to the email transition
  */
 function workbench_email_create_form_element(&$form, $email_transition) {
-  $users = workbench_email_get_users($email_transition->rid);
+  $author = FALSE;
+  global $user;
+  if ($email_transition->rid == 0) {
+    $users[] = $user;
+    $author = TRUE;
+    $description = t('Select the author for notification');
+  }
+  else{
+    $users = workbench_email_get_users($email_transition->rid);
+    $description = t('Select one or more users to notify');
+  }
+
   if ($users) {
-    global $user;
-    $emails = array('0' => '- None -');
+    $emails = array();
     foreach ($users as $uid => $account) {
       if ($user->mail != $account->mail) {
         $emails[$account->mail] = $account->name;
       }
+
+      if ($author) {
+        $emails[$account->mail] = $account->name;
+      }
     }
-    $role = user_role_load($email_transition->rid);
-    ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
-    $form[$wrapper_id]['workflow_email'][$role->rid] = array(
-      '#type' => 'select',
-      '#title' => t("@role_name", array('@role_name' => ucwords($role->name))),
-      '#options' => $emails,
-      '#description' => t('Select one or more users to notify'),
-      '#multiple' => TRUE,
-      '#hidden' => $email_transition,
-      '#attributes' => array('class' => array('chosen-widget')),
-    );
+
+    if ($emails) {
+      if ($author) {
+        $role = new stdClass();
+        $role->name = 'author';
+        $role->rid = 0;
+      }
+      else {
+        $role = user_role_load($email_transition->rid);
+      }
+
+      $prefix = '';
+      $suffix = '';
+      $attributes = array('class' => array('chosen-widget'));
+      if ($email_transition->automatic) {
+        $prefix = '<div class="workbench-email-hide">';
+        $suffix = '</div>';
+        $attributes = array();
+      }
+
+      ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
+      $form[$wrapper_id]['workbench_email'][$role->rid] = array(
+        '#type' => 'select',
+        '#title' => t("@role_name", array('@role_name' => ucwords($role->name))),
+        '#options' => $emails,
+        '#description' => $description,
+        '#multiple' => TRUE,
+        '#hidden' => $email_transition,
+        '#attributes' => $attributes,
+        '#prefix' => $prefix,
+        '#suffix' => $suffix,
+        '#auto' => $email_transition->automatic
+      );
+    }
   }
 }
