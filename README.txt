@@ -134,16 +134,18 @@ Workbench Email uses two tables to store emails and email transitions.
   (view draft, moderate) - dependant on http://drupal.org/node/1515110
 * Integrate with Workbench Access - START
 * Fix error messages on sending (multiple, should watchdog em) - START
+* Update features export to export new variables (What about old
+  export, what happens?) - START
+* Batch send emails, investigate queue_mail modules (perhaps,
+  this is how I can fix the multiple error messages) - START
 
-
-* Add a notify author role in the email transitions, so when it moves to
-  state "X", author is always notified automatically. - IN PROG
+* Add auto notify setting to fire email when state transition occurs. - DONE
+* Add an all users option inside the select list, allowing for mass email.
+  This was reworked to become a checkbox option in the admin - DONE
+* Add setting for role and / or user based notification - DONE
 * Rework admin pages, create one section called email, define email
-  transitions, ajax submit, inject emails section (ajaxify form) - IN PROG
-* Add setting for role and / or user based notification - IN PROG
-* Add an all users option inside the select list, allowing for mass email. - IN PROG
-* Add auto notify setting to fire email when state transition occurs. - IN PROG
-
-
+  transitions, ajax submit, inject emails section (ajaxify form) - DONE
+* Add a notify author role in the email transitions, so when it moves to
+  state "X", author is always notified automatically. - DONE
 * Remove rid from being exported in feature. - DONE
 * Apply chosen.js to select list - DONE

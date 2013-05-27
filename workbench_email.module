@@ -117,19 +117,20 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
   $transition->from_name = $previous_state;
   $transition->to_name = $new_state;
   $workbench_emails = workbench_email_get($transition, 0, 0, 1);
+  $accounts = array();
   foreach ($workbench_emails as $transition_label => $email_transition_set) {
     foreach ($email_transition_set as $rid => $email_transition) {
-      $accounts = array();
       if ($email_transition->rid == 0) {
-        $accounts = array(user_load($node->uid));
+        $accounts[] = user_load($node->uid);
       }
       else {
         $accounts = workbench_email_get_users($email_transition->rid);
       }
-      foreach ($accounts as $account) {
-        workbench_email_mail_send($account->mail, $email_transition, $node);
-      }
     }
+  }
+
+  foreach ($accounts as $account) {
+    workbench_email_mail_send($account->mail, $email_transition, $node);
   }
 }
 
@@ -152,10 +153,8 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
 function workbench_email_mail_send($email, $email_transition, $node) {
   $module = 'workbench_email';
   $key = 'workbench_email';
-
   $to = $email;
   $from = variable_get('site_mail', 'admin@example.com');
-
   if (empty($email_transition->subject) && empty($email_transition->message)) {
     drupal_set_message(t('No email template is set, so no email was sent.
                        Contact your system admin to resolve this issue.'));
@@ -169,6 +168,7 @@ function workbench_email_mail_send($email, $email_transition, $node) {
   $params['user'] = $user;
   $language = language_default();
   $send = TRUE;
+  watchdog('workbench_email', $to);
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
   if ($result['result'] == TRUE) {
     drupal_set_message(t('Your message has been sent.'));
@@ -314,7 +314,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
  * @param int $rid
  *   The role ID
  *
- * @return email
+ * @return emails
  *   Returns the workbench_email object or FALSE
  */
 function workbench_email_get($transition = NULL, $rid = NULL, $author = 0, $automatic = 0) {
