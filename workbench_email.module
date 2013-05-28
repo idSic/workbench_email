@@ -513,3 +513,151 @@ function workbench_email_get_role_by_rid($rid) {
   }
   return $role;
 }
+
+/**
+ * Function to get all the parents of the workbench access's section.
+ *
+ * For an active taxonomy scheme.
+ *
+ * @param $node
+ * @return mixed
+ */
+function workbench_email_scheme_taxonomy_get_parents($sections) {
+  $terms = taxonomy_term_load_multiple($sections);
+
+  // Get all parents.
+  foreach ($terms as $term) {
+    $parents = taxonomy_get_parents_all($term->tid);
+    if (!empty($parents)) {
+      foreach ($parents as $parent) {
+        $tid = $parent->tid;
+        $voc_name = $parent->vocabulary_machine_name;
+        if (!in_array($tid, $sections)) {
+          $sections[$tid] = $tid;
+        }
+      }
+      // Add the vocabulary name.
+      $sections[$voc_name] = $voc_name;
+    }
+  };
+
+  return $sections;
+}
+
+/**
+ * Function to get all the parents of the workbench access's section.
+ *
+ * For an active menu scheme.
+ *
+ * @param $node
+ * @return mixed
+ */
+function workbench_email_scheme_menu_get_parents($sections) {
+  // Get the menu parent items.
+  $query = db_select('menu_links', 'm');
+  $query->fields('m', array('plid', 'menu_name'));
+  for ($i = 1; $i <= 9; $i++) {
+    $query->fields('m', array('p' . $i));
+  }
+  $query->condition('mlid', array_keys($sections), 'IN');
+  $result = $query->execute();
+
+  foreach ($result as $record) {
+    $menu_name = $record->menu_name;
+    // Add all the parents to $sections.
+    for ($i = 1; $i <= 9; $i++) {
+      $p = 'p' . $i;
+      $parent = $record->$p;
+
+      if ($parent == '0') {
+        break;
+      }
+
+      if (!in_array($parent, $sections)) {
+        $sections[$parent] = $parent;
+      }
+    }
+    // Add the menu's name to $sections.
+    if (!in_array($menu_name, $sections)) {
+      $sections[$menu_name] = $menu_name;
+    }
+  }
+
+  return $sections;
+}
+
+/**
+ * Function to get all the editors of workbench access section.
+ *
+ * Filter by the roles specified in workbench notify settings
+ * for individually editors
+ *
+ * @param $roles
+ * @param $sections
+ * @return array
+ */
+function workbench_email_get_editors($role, $sections) {
+  $editors = array();
+
+  // Get the editors individually specified in
+  // workbench access editoral assignments by editor.
+  // Filter by the roles specified in workbench notify settings.
+  $query = db_select('users', 'u');
+  $query->fields('u', array('uid','mail', 'name'));
+  $query->join('workbench_access_user', 'w', 'u.uid = w.uid');
+  $query->join('users_roles', 'r', 'u.uid = r.uid');
+  $query->condition('r.rid', $role->rid);
+  $query->condition('access_id', $sections, 'IN');
+  $result = $query->execute();
+
+  foreach ($result as $record) {
+    $editors[$record->uid]['mail'] = $record->mail;
+    $editors[$record->uid]['name'] = $record->name;
+  }
+
+  // Get all the editors specified by their role.
+  $query = db_select('users', 'u');
+  $query->fields('u', array('uid', 'mail', 'name'));
+  $query->join('users_roles', 'r', 'u.uid = r.uid');
+  $query->join('workbench_access_role', 'w', 'r.rid = w.rid');
+  $query->condition('access_id', $sections, 'IN');
+  $result = $query->execute();
+
+  foreach ($result as $record) {
+    $editors[$record->uid]['mail'] = $record->mail;
+    $editors[$record->uid]['name'] = $record->name;
+  }
+
+  return $editors;
+}
+
+/**
+ * Get all the editors of workbench access section.
+ *
+ * @param $form
+ * @param $email_transition
+ * @return array
+ */
+function workbench_email_get_workbench_access_editors($form, $email_transition) {
+  $sections = array();
+
+  $active_scheme = variable_get('workbench_access');
+  if (isset($form['workbench_access']['workbench_access']['#options'])) {
+    $sections = $form['workbench_access']['workbench_access']['#options'];
+  }
+
+  if ($active_scheme == 'taxonomy') {
+    $sections = workbench_email_scheme_taxonomy_get_parents($sections);
+  }
+  else if ($active_scheme == 'menu') {
+    $sections = workbench_email_scheme_menu_get_parents($sections);
+  }
+
+  $role = workbench_email_get_role_by_rid($email_transition->rid);
+
+  // Get all the editors of workbench access section.
+  $editors = workbench_email_get_editors($role, $sections);
+
+  return $editors;
+}
+

@@ -74,10 +74,15 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
     $workbench_emails = workbench_email_get();
     foreach ($workbench_emails as $transition => $email_roles) {
       foreach ($email_roles as $rid => $email_transition) {
+        $editors = array();
+        if (module_exists('workbench_access')) {
+          $editors = workbench_email_get_workbench_access_editors($form, $email_transition);
+        }
+
         if ($email_transition->from_name == $current_from_state
           && $email_transition->to_name == $form_moderation_state
           && !$email_transition->automatic) {
-          workbench_email_create_form_element($form, $email_transition);
+          workbench_email_create_form_element($form, $email_transition, $editors);
         }
       }
     }
@@ -139,11 +144,11 @@ function workbench_email_notification_submit($form, &$form_state) {
  * @param object $params
  *   A object containing information relating to the email transition
  */
-function workbench_email_create_form_element(&$form, $email_transition) {
+function workbench_email_create_form_element(&$form, $email_transition, $editors = array()) {
   $author = FALSE;
   global $user;
   if ($email_transition->rid == 0) {
-    $users[] = $user;
+    $users[$user->uid] = $user;
     $author = TRUE;
     $description = t('Select the author for notification');
   }
@@ -155,12 +160,22 @@ function workbench_email_create_form_element(&$form, $email_transition) {
   if ($users) {
     $emails = array();
     foreach ($users as $uid => $account) {
-      if ($user->mail != $account->mail) {
-        $emails[$account->mail] = $account->name;
+      if ($editors) { // workbench access check
+        foreach ($editors as $e_uid => $e_account) {
+          if ($e_uid == $uid) {
+            if ($user->mail != $account->mail) {
+              $emails[$account->mail] = $account->name;
+            }
+          }
+        }
       }
-
-      if ($author) {
-        $emails[$account->mail] = $account->name;
+      else {
+        if ($user->mail != $account->mail) {
+          $emails[$account->mail] = $account->name;
+        }
+        if ($author) {
+          $emails[$account->mail] = $account->name;
+        }
       }
     }
 
