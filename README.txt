@@ -132,7 +132,6 @@ Workbench Email uses two tables to store emails and email transitions.
 * Implement hooks for specific situation (drupal_alter's) - WHERE???
 * Allow email select list to show up under all moderation areas - BLOCKED
   (view draft, moderate) - dependant on http://drupal.org/node/1515110
-* Integrate with Workbench Access - START
 * Batch send emails, investigate queue_mail modules (perhaps,
   this is how I can fix the multiple error messages) - START
 * Add a setting for batch processing.
@@ -141,6 +140,7 @@ Workbench Email uses two tables to store emails and email transitions.
 
 
 
+* Integrate with Workbench Access - DONE
 * Fix error messages on sending (multiple, should watchdog em) - DONE
 * Update features export to export new variables (What about old
   export, what happens?) - DONE

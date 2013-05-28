@@ -67,6 +67,44 @@ function workbench_email_schema() {
 }
 
 /**
+ * Implements hook_requirements() to check if workbench_email is configured.
+ *
+ * @param $phase
+ */
+function workbench_email_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    $description = array();
+    if (!module_exists('chosen')) {
+      $url = l('Chosen', 'http://drupal.org/project/chosen');
+      $description[] = t('!chosen is not installed on the site.
+      Please download the module to fully support Workbench Email functionality.',
+      array('!chosen' => $url));
+    }
+
+    if (!empty($description)) {
+      $requirements['workbench_email'] = array(
+        'title' => t('Workbench Email'),
+        'value' => t('Not configured'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => theme('item_list', array('items' => $description)),
+      );
+    }
+//    else {
+//      $requirements['workbench_email'] = array(
+//        'title' => t('Workbench Email'),
+//        'value' => t('Configured'),
+//        'severity' => REQUIREMENT_OK,
+//        'description' => t('Workbench Email is configured properly'),
+//      );
+//    }
+  }
+
+  return $requirements;
+}
+
+/**
  * Implements hook_update_N().
  *
  * Removes string indexes from the 'workbench_emails' and
