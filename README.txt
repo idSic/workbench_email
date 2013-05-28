@@ -133,12 +133,17 @@ Workbench Email uses two tables to store emails and email transitions.
 * Allow email select list to show up under all moderation areas - BLOCKED
   (view draft, moderate) - dependant on http://drupal.org/node/1515110
 * Integrate with Workbench Access - START
-* Fix error messages on sending (multiple, should watchdog em) - START
-* Update features export to export new variables (What about old
-  export, what happens?) - START
 * Batch send emails, investigate queue_mail modules (perhaps,
   this is how I can fix the multiple error messages) - START
+* Add a setting for batch processing.
+* Possibly deploy a 7.3 with dependency on chosen, else backport into 7.2.2
+  without chosen module.
 
+
+
+* Fix error messages on sending (multiple, should watchdog em) - DONE
+* Update features export to export new variables (What about old
+  export, what happens?) - DONE
 * Add auto notify setting to fire email when state transition occurs. - DONE
 * Add an all users option inside the select list, allowing for mass email.
   This was reworked to become a checkbox option in the admin - DONE
@@ -149,3 +154,9 @@ Workbench Email uses two tables to store emails and email transitions.
   state "X", author is always notified automatically. - DONE
 * Remove rid from being exported in feature. - DONE
 * Apply chosen.js to select list - DONE
+
+
+TEST
+* Features
+* Adding chosen as a dependency
+* Upgrade path

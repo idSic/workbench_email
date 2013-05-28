@@ -155,9 +155,26 @@ function workbench_email_mail_send($email, $email_transition, $node) {
   $key = 'workbench_email';
   $to = $email;
   $from = variable_get('site_mail', 'admin@example.com');
+  $role = workbench_email_get_role_by_rid($email_transition->rid);
   if (empty($email_transition->subject) && empty($email_transition->message)) {
-    drupal_set_message(t('No email template is set, so no email was sent.
-                       Contact your system admin to resolve this issue.'));
+    drupal_set_message(
+      t('No email template is set, so no email was sent.
+      Contact your system admin to resolve this issue.'),
+      'error', FALSE
+    );
+
+    watchdog('workbench_email',
+      t('No email template is set, so no email was sent.
+      Contact your system admin to resolve this issue.
+      From State: !from_state
+      New State: !new_state
+      Role: !role_name'),
+      array(
+        '!from_state' => $email_transition->from_name,
+        '!new_state' => $email_transition->to_name,
+        '!role_name' => $role->name
+      )
+    );
     return;
   }
 
@@ -171,11 +188,24 @@ function workbench_email_mail_send($email, $email_transition, $node) {
   watchdog('workbench_email', $to);
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
   if ($result['result'] == TRUE) {
-    drupal_set_message(t('Your message has been sent.'));
+    drupal_set_message(t('Your message has been sent.'), 'status', FALSE);
   }
   else {
     drupal_set_message(t('There was a problem sending your
-                         message and it was not sent.'), 'error');
+                         message and it was not sent.'), 'error', FALSE);
+    watchdog('workbench_email',
+      t('There was a problem sending your message and it was not sent.
+      From State: !from_state
+      New State: !new_state
+      Role: !role_name
+      To: !to'),
+      array(
+        '!from_state' => $email_transition->from_name,
+        '!new_state' => $email_transition->to_name,
+        '!role_name' => $role->name,
+        '!to' => $to
+      )
+    );
   }
 }
 
@@ -440,4 +470,46 @@ function workbench_email_get_users($rid) {
   $users = array();
   $users = user_load_multiple($uids);
   return $users;
+}
+
+/**
+ * Returns role object by name
+ *
+ * @param $role_name
+ *  The role name
+ *
+ * @return stdClass
+ *  The role object
+ */
+function workbench_email_get_role_by_name($role_name) {
+  if ($role_name == 'author') {
+    $role = new stdClass();
+    $role->rid = 0;
+    $role->name = 'author';
+  }
+  else {
+    $role = user_role_load_by_name($role_name);
+  }
+  return $role;
+}
+
+/**
+ * Returns role object
+ *
+ * @param $role_name
+ *  The role name
+ *
+ * @return stdClass
+ *  The role object
+ */
+function workbench_email_get_role_by_rid($rid) {
+  if ($rid == 0) {
+    $role = new stdClass();
+    $role->rid = 0;
+    $role->name = 'author';
+  }
+  else {
+    $role = user_role_load($rid);
+  }
+  return $role;
 }
