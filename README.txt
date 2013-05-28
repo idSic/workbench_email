@@ -142,4 +142,3 @@ Workbench Email uses two tables to store emails and email transitions.
   - No transitions set (visit admin page)
   - No users defined in role X
   - No roles defined with permissions correct
-  
