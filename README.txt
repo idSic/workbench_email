@@ -132,31 +132,14 @@ Workbench Email uses two tables to store emails and email transitions.
 * Implement hooks for specific situation (drupal_alter's) - WHERE???
 * Allow email select list to show up under all moderation areas - BLOCKED
   (view draft, moderate) - dependant on http://drupal.org/node/1515110
-* Integrate with Workbench Access - START
-* Batch send emails, investigate queue_mail modules (perhaps,
-  this is how I can fix the multiple error messages) - START
-* Add a setting for batch processing.
-* Possibly deploy a 7.3 with dependency on chosen, else backport into 7.2.2
-  without chosen module.
-
-
-
-* Fix error messages on sending (multiple, should watchdog em) - DONE
-* Update features export to export new variables (What about old
-  export, what happens?) - DONE
-* Add auto notify setting to fire email when state transition occurs. - DONE
-* Add an all users option inside the select list, allowing for mass email.
-  This was reworked to become a checkbox option in the admin - DONE
-* Add setting for role and / or user based notification - DONE
-* Rework admin pages, create one section called email, define email
-  transitions, ajax submit, inject emails section (ajaxify form) - DONE
-* Add a notify author role in the email transitions, so when it moves to
-  state "X", author is always notified automatically. - DONE
-* Remove rid from being exported in feature. - DONE
-* Apply chosen.js to select list - DONE
-
-
-TEST
-* Features
-* Adding chosen as a dependency
-* Upgrade path
+* Batch send emails, investigate queue_mail modules - START
+* Add a setting for batch processing. - START
+* Reminder, add note on project page and notes in release that feature will be
+  overridden and needs to be re-created in order to default. - START
+* Add developer mode, to display hints to programmer why for instance,
+  state X to state Y occured, but nothing shows on the node edit page.
+  - No user in role X with workbench access configured correctly
+  - No transitions set (visit admin page)
+  - No users defined in role X
+  - No roles defined with permissions correct
+  

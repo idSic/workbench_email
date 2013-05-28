@@ -67,6 +67,58 @@ function workbench_email_schema() {
 }
 
 /**
+ * Implements hook_requirements() to check if workbench_email is configured.
+ *
+ * @param $phase
+ */
+function workbench_email_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    $description = array();
+    if (!module_exists('chosen')) {
+      $url = l('Chosen', 'http://drupal.org/project/chosen');
+      $description[] = t('!chosen is not installed on the site.
+      Please download the module to fully support the UI.',
+        array('!chosen' => $url));
+    }
+
+    if (!module_exists('token')) {
+      $url = l('Chosen', 'http://drupal.org/project/token');
+      $description[] = t('!token is not installed on the site.
+      Please download the module to fully support email capabilities.',
+        array('!token' => $url));
+    }
+
+    if (!module_exists('workbench_moderation')) {
+      $url = l('Chosen', 'http://drupal.org/project/workbench_moderation');
+      $description[] = t('!workbench_moderation is not installed on the site.
+      Please download the module to begin using Workbench Email.',
+        array('!workbench_moderation' => $url));
+    }
+
+    if (!empty($description)) {
+      $requirements['workbench_email'] = array(
+        'title' => t('Workbench Email'),
+        'value' => t('Not configured'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => theme('item_list', array('items' => $description)),
+      );
+    }
+    else {
+      $requirements['workbench_email'] = array(
+        'title' => t('Workbench Email'),
+        'value' => t('Configured'),
+        'severity' => REQUIREMENT_OK,
+        'description' => t('Workbench Email is configured properly.'),
+      );
+    }
+  }
+
+  return $requirements;
+}
+
+/**
  * Implements hook_update_N().
  *
  * Removes string indexes from the 'workbench_emails' and

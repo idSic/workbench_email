@@ -171,17 +171,16 @@ function workbench_email_form($form, &$form_state) {
   }
 
   $form['transitions_container']['help_text_notify'] = array(
-    '#markup' => t('<strong>Notify</strong>: The state change will allow
-    the user to select one or many individuals from the role to notify.
-    In the case of the author, the single user will be an option for
-    notification within the node edit form.<br />'),
+    '#markup' => t('<strong>Notify</strong>: When content moves from
+    state X to state Y, the user performing the operation will be presented
+    with a UI select list to notify user(s) of the given role.<br />'),
   );
   $form['transitions_container']['help_text_auto_notify'] = array(
-    '#markup' => t('<strong>Auto Notify</strong>: The state change will
-    automatically notify all users within the role to be notified without
-    displaying an option on the node edit form. In the case of the author,
-    the single user is notified automatically. Note that "Notify" must be
-    selected as well.<br />'),
+    '#markup' => t('<strong>Auto Notify</strong>: When content moves from
+    state X to state Y, all users within the role with be notified without
+    displaying an option to the user performing the action. In the case
+    of the author, the single user is notified automatically. Note that
+    "Notify" must be selected as well.<br />'),
   );
 
   $workbench_emails = workbench_email_get();

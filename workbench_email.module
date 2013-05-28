@@ -282,7 +282,7 @@ function workbench_email_determine_moderation_permissions() {
     // Per-node type permissions are very complex, and should only be used if
     // absolutely needed. For right now, this is hardcoded to OFF. To enable it,
     // Add this line to settings.php and then reset permissions.
-    //   $conf['workbench_moderation_per_node_type'] = TRUE;
+    // $conf['workbench_moderation_per_node_type'] = TRUE;
     if (variable_get('workbench_moderation_per_node_type', FALSE)) {
       foreach ($node_types as $node_type) {
         $permissions["moderate $node_type state from $from_state to $to_state"] = TRUE;
