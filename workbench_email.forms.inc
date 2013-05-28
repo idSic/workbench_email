@@ -60,7 +60,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       $current_from_state = workbench_moderation_state_none();
     }
 
-    // Determine form next state for the ajax.
+    // Initialize to the current state.
     $form_moderation_state = $current_from_state;
     if (!empty($form_state['values']) &&
       isset($form_state['values']['workbench_moderation_state_new'])) {
