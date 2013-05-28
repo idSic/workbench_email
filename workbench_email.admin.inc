@@ -180,7 +180,7 @@ function workbench_email_form($form, &$form_state) {
     state X to state Y, all users within the role with be notified without
     displaying an option to the user performing the action. In the case
     of the author, the single user is notified automatically. Note that
-    "Notify" must be selected as well.<br />'),
+    "Notify" must be selected as well as "Auto Notify".<br />'),
   );
 
   $workbench_emails = workbench_email_get();
