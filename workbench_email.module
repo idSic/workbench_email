@@ -113,24 +113,60 @@ function workbench_email_features_api() {
  *  The new state of the revision.
  */
 function workbench_email_workbench_moderation_transition($node, $previous_state, $new_state) {
+  global $user;
   $transition = new stdClass();
   $transition->from_name = $previous_state;
   $transition->to_name = $new_state;
   $workbench_emails = workbench_email_get($transition, 0, 0, 1);
-  $accounts = array();
   foreach ($workbench_emails as $transition_label => $email_transition_set) {
     foreach ($email_transition_set as $rid => $email_transition) {
+      $editors = array();
+      $accounts = array();
+      $emails = array();
+      $author = FALSE;
+      if (module_exists('workbench_access')) {
+        $editors = workbench_email_get_workbench_access_editors('node', array('object' => $node), $email_transition);
+      }
+
       if ($email_transition->rid == 0) {
-        $accounts[] = user_load($node->uid);
+        $account = user_load($node->uid);
+        $accounts[$account->uid] = $account;
+        $author = TRUE;
       }
       else {
         $accounts = workbench_email_get_users($email_transition->rid);
       }
-    }
-  }
 
-  foreach ($accounts as $account) {
-    workbench_email_mail_send($account->mail, $email_transition, $node);
+      if ($editors && $accounts) { // workbench access check
+        foreach($accounts as $uid => $account) {
+          foreach ($editors as $e_uid => $e_account) {
+            if ($e_uid == $uid) {
+              // if the current user is the author and the admin has setup the
+              // transition to notify them, then we force it.
+              if ($author) {
+                $emails[$account->mail] = $account->name;
+              }
+              // if the current user is a member of a separate role they probably
+              // wouldn't want to be notified they just made a transition.
+              // possible setting in the future.
+              if ($user->mail != $account->mail) {
+                $emails[$account->mail] = $account->name;
+              }
+            }
+          }
+        }
+
+        foreach($emails as $email => $name) {
+          workbench_email_mail_send($email, $email_transition, $node);
+        }
+      }
+
+      if (!$editors) {  // workbench access disabled, or section free
+        foreach ($accounts as $account) {
+          workbench_email_mail_send($account->mail, $email_transition, $node);
+        }
+      }
+    }
   }
 }
 
@@ -158,13 +194,13 @@ function workbench_email_mail_send($email, $email_transition, $node) {
   $role = workbench_email_get_role_by_rid($email_transition->rid);
   if (empty($email_transition->subject) && empty($email_transition->message)) {
     drupal_set_message(
-      t('No email template is set, so no email was sent.
+      t('No workbench email template found, so no email was sent.
       Contact your system admin to resolve this issue.'),
       'error', FALSE
     );
 
     watchdog('workbench_email',
-      t('No email template is set, so no email was sent.
+      t('No workbench email template found, so no email was sent.
       Contact your system admin to resolve this issue.
       From State: !from_state
       New State: !new_state
@@ -188,13 +224,15 @@ function workbench_email_mail_send($email, $email_transition, $node) {
   watchdog('workbench_email', $to);
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
   if ($result['result'] == TRUE) {
-    drupal_set_message(t('Your message has been sent.'), 'status', FALSE);
+    drupal_set_message(t('Email notifications sent.'), 'status', FALSE);
   }
   else {
-    drupal_set_message(t('There was a problem sending your
-                         message and it was not sent.'), 'error', FALSE);
+    drupal_set_message(t('There was a problem sending the
+                         email notifications. No messages were
+                         sent.'), 'error', FALSE);
     watchdog('workbench_email',
-      t('There was a problem sending your message and it was not sent.
+      t('There was a problem sending the email notifications.
+      No messages were sent.
       From State: !from_state
       New State: !new_state
       Role: !role_name
@@ -638,12 +676,19 @@ function workbench_email_get_editors($role, $sections) {
  * @param $email_transition
  * @return array
  */
-function workbench_email_get_workbench_access_editors($form, $email_transition) {
+function workbench_email_get_workbench_access_editors($op = 'node', $entity = array(), $email_transition) {
   $sections = array();
 
   $active_scheme = variable_get('workbench_access');
-  if (isset($form['workbench_access']['workbench_access']['#options'])) {
-    $sections = $form['workbench_access']['workbench_access']['#options'];
+  if ($op == 'form') {
+    if (isset($entity['object']['workbench_access']['workbench_access']['#options'])) {
+      $sections = $entity['object']['workbench_access']['workbench_access']['#options'];
+    }
+  }
+  else {
+    if (isset($entity['object']->workbench_access)) {
+      $sections = $entity['object']->workbench_access;
+    }
   }
 
   if ($active_scheme == 'taxonomy') {

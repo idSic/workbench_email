@@ -76,7 +76,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       foreach ($email_roles as $rid => $email_transition) {
         $editors = array();
         if (module_exists('workbench_access')) {
-          $editors = workbench_email_get_workbench_access_editors($form, $email_transition);
+          $editors = workbench_email_get_workbench_access_editors('form', array('object' => $form), $email_transition);
         }
 
         if ($email_transition->from_name == $current_from_state
@@ -152,7 +152,7 @@ function workbench_email_create_form_element(&$form, $email_transition, $editors
     $author = TRUE;
     $description = t('Select the author for notification');
   }
-  else{
+  else {
     $users = workbench_email_get_users($email_transition->rid);
     $description = t('Select one or more users to notify');
   }
@@ -163,16 +163,26 @@ function workbench_email_create_form_element(&$form, $email_transition, $editors
       if ($editors) { // workbench access check
         foreach ($editors as $e_uid => $e_account) {
           if ($e_uid == $uid) {
+            // if the current user is a member of a separate role they probably
+            // wouldn't want to be notified they just made a transition.
+            // possible setting in the future.
             if ($user->mail != $account->mail) {
+              $emails[$account->mail] = $account->name;
+            }
+            // if the current user is the author and the admin has setup the
+            // transition to notify them, then we force it.
+            if ($author) {
               $emails[$account->mail] = $account->name;
             }
           }
         }
       }
       else {
+        // same logic as above.
         if ($user->mail != $account->mail) {
           $emails[$account->mail] = $account->name;
         }
+        // same logic as above.
         if ($author) {
           $emails[$account->mail] = $account->name;
         }
