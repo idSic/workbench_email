@@ -97,6 +97,15 @@ function workbench_email_requirements($phase) {
         array('!workbench_moderation' => $url));
     }
 
+//    $queue_length = _queue_mail_get_queue()->numberOfItems();
+//    $requirements['queue_mail'] = array(
+//      'title' => t('Queue mail'),
+//      'value' => format_plural($queue_length, '1 mail currently queued for sending.', '@count mails currently queued for sending.'),
+//      'severity' => $queue_length > 0 ? REQUIREMENT_INFO : REQUIREMENT_OK,
+//      'description' => t('Sending of queued mails happens on cron. You can <a href="@cron_link">run cron manually</a>.', array('@cron_link' => url('admin/reports/status/run-cron', array('query' => drupal_get_destination())))),
+//    );
+//    break;
+
     if (!empty($description)) {
       $requirements['workbench_email'] = array(
         'title' => t('Workbench Email'),
@@ -116,6 +125,21 @@ function workbench_email_requirements($phase) {
   }
 
   return $requirements;
+}
+
+/**
+ * Implements hook_install().
+ */
+function workbench_email_install() {
+  workbench_email_get_queue()->createQueue();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function workbench_email_uninstall() {
+  drupal_load('module', 'workbench_email');
+  workbench_email_get_queue()->deleteQueue();
 }
 
 /**

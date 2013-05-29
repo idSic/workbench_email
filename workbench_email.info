@@ -5,3 +5,7 @@ core = 7.x
 dependencies[] = workbench_moderation
 dependencies[] = token
 dependencies[] = chosen
+
+; Add a dependency on Drupal 7.12, when the ability to stop emails being sent
+; was added to core.
+dependencies[] = system (>=7.12)

@@ -82,7 +82,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
         $editors = array();
         $access = TRUE;
         if ($workbench_access) {
-          $editors = workbench_email_get_workbench_access_editors('form', array('object' => $form), $email_transition);
+          $editors = workbench_email_get_workbench_access_editors('form', array('object' => $form), $rid);
           $access = FALSE;
         }
 
