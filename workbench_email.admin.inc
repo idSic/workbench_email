@@ -140,9 +140,7 @@ function workbench_email_form($form, &$form_state) {
       foreach ($email_transition_set as $rid => $email_transition) {
         $subject = $email_transition->subject;
         $message = $email_transition->message;
-        $role = new stdClass();
-        $role->name = 'author';
-        $role->rid = 0;
+        $role = workbench_email_get_author_role();
         if ($rid) {
           $role = user_role_load($rid);
         }
@@ -187,7 +185,8 @@ function workbench_email_form($form, &$form_state) {
           '#collapsible' => TRUE,
         );
 
-        // Use the token_tree_link theme if available (introduced in Token 7.x-1.2)
+        // Use the token_tree_link theme if available.
+        // Introduced in Token 7.x-1.2
         if (function_exists('theme_token_tree_link')) {
           $token_tree_theme = 'token_tree_link';
         } else {
@@ -197,7 +196,6 @@ function workbench_email_form($form, &$form_state) {
         $form['emails']['token_set']['tokens'] = array(
           '#theme' => $token_tree_theme,
           '#token_types' => array('node', 'user'),
-          //'#click_insert' => TRUE, // i believe it does click insert automatically since its a modal.
         );
       }
     }

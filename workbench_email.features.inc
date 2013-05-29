@@ -15,10 +15,8 @@ function workbench_email_features_export_options() {
   $workbench_emails = workbench_email_get();
   foreach ($workbench_emails as $transition_label => $email_transition_set) {
     foreach ($email_transition_set as $rid => $email_transition) {
-      if ($rid == 0) {
-        $role = new stdClass();
-        $role->name = 'author';
-        $role->rid = 0;
+      if ($rid == WORKBENCH_EMAIL_AUTHOR) {
+        $role = workbench_email_get_author_role();
       }
       else {
         $role = user_role_load($rid);
