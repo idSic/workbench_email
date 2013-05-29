@@ -53,7 +53,7 @@ function workbench_email_features_export_render($module_name, $data) {
     $transition_role = explode('::', $transition);
     $role = user_role_load_by_name($transition_role[1]);
     $item = db_select('workbench_emails', 'we')
-      ->fields('we', array('from_name', 'to_name', 'rid'))
+      ->fields('we', array('from_name', 'to_name'))
       ->condition('from_name', $from_name)
       ->condition('to_name', $to_name)
       ->condition('rid', $role->rid)
