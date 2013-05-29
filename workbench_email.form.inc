@@ -141,15 +141,29 @@ function workbench_email_form_node_callback($form, $form_state) {
  */
 function workbench_email_notification_submit($form, &$form_state) {
   if (isset($form_state['values']['workbench_email'])) {
+    global $user;
     ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
     foreach ($form_state['values']['workbench_email'] as $rid => $role_emails) {
       foreach ($role_emails as $email) {
-        if ($email) { // all users = 0
-          // determine workbench access within this role then send emails
-          // definetly need batch if you deploy this.
+        if (!$email) { // all users = 0
+          $accounts = array(); $editors = array();
+          $author = workbench_email_get_all_transition_users($form_state['node'], $rid, $accounts, $editors);
+          if (module_exists('workbench_access')) {
+            $editors = workbench_email_get_workbench_access_editors('node', array('object' => $form_state['node']), $rid);
+          }
+
+          if ($editors && $accounts) {
+            $emails = workbench_email_filter_workbench_access_editors($accounts, $editors, $author, $user);
+            $email_transition = $form[$wrapper_id]['workbench_email'][$rid]['#hidden'];
+            foreach($emails as $email => $name) {
+              workbench_email_mail_send($email, $email_transition, $form_state['node']);
+            }
+          }
         }
-        $email_transition = $form[$wrapper_id]['workbench_email'][$rid]['#hidden'];
-        workbench_email_mail_send($email, $email_transition, $form_state['node']);
+        else {
+          $email_transition = $form[$wrapper_id]['workbench_email'][$rid]['#hidden'];
+          workbench_email_mail_send($email, $email_transition, $form_state['node']);
+        }
       }
     }
   }

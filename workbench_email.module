@@ -4,6 +4,7 @@
  * Code for the Workbench Email Module.
  */
 define('WORKBENCH_EMAIL_AUTHOR', 0);
+define('WORKBENCH_EMAIL_QUEUE_NAME', 'workbench_email_queue_mail');
 
 include_once 'workbench_email.form.inc';
 
@@ -37,12 +38,20 @@ function workbench_email_module_implements_alter(&$implementations, $hook) {
     if (isset($implementations['workbench_moderation'], $implementations['workbench_email'])) {
       $workbench_email = $implementations['workbench_email'];
       unset($implementations['workbench_email']);
-
       $workbench_moderation = $implementations['workbench_moderation'];
       unset($implementations['workbench_moderation']);
-
       $implementations['workbench_moderation'] = $workbench_moderation;
       $implementations['workbench_email'] = $workbench_email;
+    }
+  }
+
+  if ($hook == 'mail_alter') {
+    // Ensure that our hook_mail_alter implementation is always called last.
+    if (isset($implementations['workbench_email'])) {
+      $group = $implementations['workbench_email'];
+      unset($implementations['workbench_email']);
+      // Now add it back, which will ensure we are called last.
+      $implementations['workbench_email'] = $group;
     }
   }
 }
@@ -120,42 +129,14 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
   $workbench_emails = workbench_email_get($transition, 0, 0, 1);
   foreach ($workbench_emails as $transition_label => $email_transition_set) {
     foreach ($email_transition_set as $rid => $email_transition) {
-      $editors = array();
-      $accounts = array();
-      $emails = array();
-      $author = FALSE;
+      $accounts = array(); $editors = array();
+      $author = workbench_email_get_all_transition_users($node, $email_transition->rid, $accounts, $editors);
       if (module_exists('workbench_access')) {
-        $editors = workbench_email_get_workbench_access_editors('node', array('object' => $node), $email_transition);
-      }
-      // load available users for given role
-      if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
-        $account = user_load($node->uid);
-        $accounts[$account->uid] = $account;
-        $author = TRUE;
-      }
-      else {
-        $accounts = workbench_email_get_users($email_transition->rid);
+        $editors = workbench_email_get_workbench_access_editors('node', array('object' => $node), $email_transition->rid);
       }
 
       if ($editors && $accounts) {
-        foreach($accounts as $uid => $account) {
-          foreach ($editors as $e_uid => $e_account) {
-            if ($e_uid == $uid) {
-              // if the current user is the author and the admin has setup the
-              // transition to notify them, then we force it.
-              if ($author) {
-                $emails[$account->mail] = $account->name;
-              }
-              // if the current user is a member of a separate role they
-              // probably wouldn't want to be notified they just made
-              // a transition. possible setting in the future.
-              if ($user->mail != $account->mail) {
-                $emails[$account->mail] = $account->name;
-              }
-            }
-          }
-        }
-
+        $emails = workbench_email_filter_workbench_access_editors($accounts, $editors, $author, $user);
         foreach($emails as $email => $name) {
           workbench_email_mail_send($email, $email_transition, $node);
         }
@@ -257,6 +238,36 @@ function workbench_email_mail($key, &$message, $params) {
       $message['body'][] = t(token_replace($params['message'], $params));
       break;
   }
+}
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function workbench_email_cron_queue_info() {
+  $queues[WORKBENCH_EMAIL_QUEUE_NAME] = array(
+    'worker callback' => 'workbench_email_mail_send',
+  );
+  return $queues;
+}
+
+/**
+ * Implements hook_mail_alter().
+ */
+function workbench_email_mail_alter(&$message) {
+  //$mail_keys = variable_get('queue_mail_keys', '');
+  //if (drupal_match_path($message['id'], $mail_keys)) {
+
+  // Store the message for sending on cron.
+  workbench_email_get_queue()->createItem($message);
+  // And prevent the message from being sent instantly.
+  $message['send'] = FALSE;
+}
+
+/**
+ * Get an instance of the mail queue.
+ */
+function workbench_email_get_queue() {
+  return DrupalQueue::get(WORKBENCH_EMAIL_QUEUE_NAME, TRUE);
 }
 
 /**
@@ -561,6 +572,63 @@ function workbench_email_get_author_role() {
 }
 
 /**
+ * Returns all available users for an email transition.
+ *
+ * @param $email_transition
+ * @param $node
+ */
+function workbench_email_get_all_transition_users($node, $rid, &$editors = array(), &$accounts = array()) {
+  $author = FALSE;
+
+  if (module_exists('workbench_access')) {
+    $editors = workbench_email_get_workbench_access_editors('node', array('object' => $node), $rid);
+  }
+
+  // load available users for given role
+  if ($rid == WORKBENCH_EMAIL_AUTHOR) {
+    $account = user_load($node->uid);
+    $accounts[$account->uid] = $account;
+    $author = TRUE;
+  }
+  else {
+    $accounts = workbench_email_get_users($rid);
+  }
+
+  return $author;
+}
+
+/**
+ * Filters out the workbench access editors from the
+ * entire users in a given role.
+ *
+ * @param $accounts
+ * @param $editors
+ */
+function workbench_email_filter_workbench_access_editors($accounts, $editors, $author, $user) {
+  $emails = array();
+
+  foreach ($accounts as $uid => $account) {
+    foreach ($editors as $e_uid => $e_account) {
+      if ($e_uid == $uid) {
+        // if the current user is the author and the admin has setup the
+        // transition to notify them, then we force it.
+        if ($author) {
+          $emails[$account->mail] = $account->name;
+        }
+        // if the current user is a member of a separate role they
+        // probably wouldn't want to be notified they just made
+        // a transition. possible setting in the future.
+        if ($user->mail != $account->mail) {
+          $emails[$account->mail] = $account->name;
+        }
+      }
+    }
+  }
+
+  return $emails;
+}
+
+/**
  * Function to get all the parents of the workbench access's section.
  *
  * For an active taxonomy scheme.
@@ -680,11 +748,13 @@ function workbench_email_get_editors($role, $sections) {
 /**
  * Get all the editors of workbench access section.
  *
- * @param $form
- * @param $email_transition
+ * @param string $op
+ * @param array $entity
+ * @param $rid
+ *
  * @return array
  */
-function workbench_email_get_workbench_access_editors($op = 'node', $entity = array(), $email_transition) {
+function workbench_email_get_workbench_access_editors($op = 'node', $entity = array(), $rid) {
   $sections = array();
 
   $active_scheme = variable_get('workbench_access');
@@ -713,7 +783,7 @@ function workbench_email_get_workbench_access_editors($op = 'node', $entity = ar
       $sections = workbench_email_scheme_menu_get_parents($sections);
     }
 
-    $role = workbench_email_get_role_by_rid($email_transition->rid);
+    $role = workbench_email_get_role_by_rid($rid);
 
     // Get all the editors of workbench access section.
     $editors = workbench_email_get_editors($role, $sections);
