@@ -1,5 +1,11 @@
 Workbench Email 7.x-2.1, 2013-01-05
 -----------------------------------
+by teknic Issue 2003040: fixed issue with ajax error being thrown
+by teknic Issue 1998854: fixed issue with rid being exported.
+by teknic Issue 1980512: fixed issue of error when no recipient selected
+
+Workbench Email 7.x-2.1, 2013-01-05
+-----------------------------------
 by teknic: Issue #1880238: fixed issue with null constraint on
            subject / message db fields
 
