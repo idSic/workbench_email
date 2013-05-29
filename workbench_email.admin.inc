@@ -5,80 +5,6 @@
  */
 
 /**
- * Form for administering the email content.
- *
- * Administrators can use this form to add, update, delete emails.
- *
- * @param array $form
- *   The form array
- *
- * @param array $form_state
- *   The form_state array
- *
- * @return form
- *   Returns the form array
- */
-//function workbench_email_form($form, &$form_state) {
-//
-//
-//  return $form;
-//}
-
-/**
- * Validates the form values.
- *
- * Validates if the user has entered a valid subject / message for the emails.
- *
- * @param array $form
- *   The form array
- *
- * @param array $form_state
- *   The form_state array
- */
-//function workbench_email_form_validate($form, &$form_state) {
-//  $workbench_emails = workbench_email_get();
-//  foreach ($workbench_emails as $transition_label => $email_transition_set) {
-//    foreach ($email_transition_set as $rid => $email_transition) {
-//      if (isset($form_state['values'][$transition_label])) {
-//        // Determine if subject is set with no message.
-//        if ($form_state['values'][$transition_label][$rid]['subject'] != NULL
-//            && $form_state['values'][$transition_label][$rid]['message'] == NULL) {
-//          form_set_error("$transition_label][$rid][message",
-//                         t('You must add an email message if a subject is provided'));
-//        }
-//        // Determine if message is set with no subject.
-//        if ($form_state['values'][$transition_label][$rid]['subject'] == NULL
-//            && $form_state['values'][$transition_label][$rid]['message'] != NULL) {
-//          form_set_error("$transition_label][$rid][subject",
-//                         t('You must add a subject if an email message is provided'));
-//        }
-//      }
-//    }
-//  }
-//}
-
-/**
- * Submit function for the form, saves or deletes emails.
- *
- * @param array $form
- *   The form array
- *
- * @param array $form_state
- *   The form_state array
- */
-//function workbench_email_form_submit($form, &$form_state) {
-//  $workbench_emails = workbench_email_get();
-//  foreach ($workbench_emails as $transition_label => $email_transition_set) {
-//    foreach ($email_transition_set as $rid => $email_transition) {
-//      $subject = $form_state['values'][$transition_label][$rid]['subject'];
-//      $message = $form_state['values'][$transition_label][$rid]['message'];
-//      workbench_email_save($email_transition, $rid, $subject, $message);
-//    }
-//  }
-//  drupal_set_message(t("Email's have been updated"));
-//}
-
-/**
  * Administration form to create and delete email transitions.
  *
  * @param array $form
@@ -252,17 +178,28 @@ function workbench_email_form($form, &$form_state) {
     if ($workbench_emails) {
       $form['#tree'] = TRUE;
 
-      $form['emails']['token_set'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Available Tokens'),
-        '#collapsible' => TRUE,
-      );
+      // Display the list of available placeholders if token module is installed.
+      if (module_exists('token')) {
+        require_once(DRUPAL_ROOT . '/' . drupal_get_path('module', 'token') . '/token.pages.inc');
+        $form['emails']['token_set'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Available Tokens'),
+          '#collapsible' => TRUE,
+        );
 
-      $form['emails']['token_set']['tokens'] = array(
-        '#theme' => 'token_tree',
-        '#token_types' => array('node', 'user'),
-        '#click_insert' => TRUE,
-      );
+        // Use the token_tree_link theme if available (introduced in Token 7.x-1.2)
+        if (function_exists('theme_token_tree_link')) {
+          $token_tree_theme = 'token_tree_link';
+        } else {
+          $token_tree_theme = 'token_tree';
+        }
+
+        $form['emails']['token_set']['tokens'] = array(
+          '#theme' => $token_tree_theme,
+          '#token_types' => array('node', 'user'),
+          //'#click_insert' => TRUE, // i believe it does click insert automatically since its a modal.
+        );
+      }
     }
   }
 

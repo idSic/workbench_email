@@ -140,6 +140,10 @@ function workbench_email_notification_submit($form, &$form_state) {
  *
  * @param array $form
  *   The form array passed by reference
+ * @param $email_transition
+ *   The current transition and its data
+ * @param array $editors
+ *   The workbench access editors
  *
  * @param object $params
  *   A object containing information relating to the email transition
@@ -209,6 +213,9 @@ function workbench_email_create_form_element(&$form, $email_transition, $editors
         '#hidden' => $email_transition,
         '#attributes' => array('class' => array('chosen-widget'))
       );
+
+      $user_groups = array('editors' => $editors, 'users' => $users);
+      drupal_alter('workbench_email_create_form_element', $form, $email_transition, $user_groups);
     }
   }
 }
