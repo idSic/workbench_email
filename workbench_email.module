@@ -504,10 +504,10 @@ function workbench_email_delete($transition, $rid) {
 }
 
 /**
- * Deletes all emails from the table
+ * Deletes all emails from the table.
  *
  * @return db_delete
- *   Returns TRUE or FALSE
+ *   Returns TRUE or FALSE.
  */
 function workbench_email_delete_all() {
   db_delete('workbench_emails')->execute();
@@ -566,13 +566,13 @@ function workbench_email_get_user_roles($uid) {
 }
 
 /**
- * Returns role object by name
+ * Returns role object by name.
  *
- * @param $role_name
- *  The role name
+ * @param string $role_name
+ *   The role name
  *
  * @return stdClass
- *  The role object
+ *   The role object
  */
 function workbench_email_get_role_by_name($role_name) {
   if ($role_name == 'author') {
@@ -585,13 +585,13 @@ function workbench_email_get_role_by_name($role_name) {
 }
 
 /**
- * Returns role object
+ * Returns role object.
  *
- * @param $role_name
- *  The role name
+ * @param array $role_name
+ *   The role name
  *
  * @return stdClass
- *  The role object
+ *   The role object
  */
 function workbench_email_get_role_by_rid($rid) {
   if ($rid == WORKBENCH_EMAIL_AUTHOR) {
@@ -607,6 +607,7 @@ function workbench_email_get_role_by_rid($rid) {
  * Returns an author role object.
  *
  * @return stdClass
+ *   The role object.
  */
 function workbench_email_get_author_role() {
   $role = new stdClass();
@@ -618,8 +619,16 @@ function workbench_email_get_author_role() {
 /**
  * Returns all available users for an email transition.
  *
- * @param $email_transition
  * @param $node
+ *   The node object in transition.
+ * @param $rid
+ *   The role id of the transition.
+ * @param array $editors
+ *   The Workbench Access editors array.
+ * @param array $accounts
+ *   The available users in the role.
+ * @return bool
+ *   Returns true if its the author transition.
  */
 function workbench_email_get_all_transition_users($node, $rid, &$editors = array(), &$accounts = array()) {
   $author = FALSE;
