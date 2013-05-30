@@ -143,7 +143,7 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
       }
 
       if ($editors && $accounts) {
-        $emails = workbench_email_filter_workbench_access_editors($email_transition->rid, $accounts, $editors, TRUE, $user);
+        $emails = workbench_email_filter_workbench_access_editors($email_transition->rid, $accounts, $editors, $user, TRUE);
         foreach ($emails as $email => $name) {
           workbench_email_mail_send($email, $email_transition, $node);
         }
@@ -627,6 +627,7 @@ function workbench_email_get_author_role() {
  *   The Workbench Access editors array.
  * @param array $accounts
  *   The available users in the role.
+ *
  * @return bool
  *   Returns true if its the author transition.
  */
@@ -663,11 +664,12 @@ function workbench_email_get_all_transition_users($node, $rid, &$editors = array
  * @param bool $author
  *   The author flag.
  * @param object $user
- *  The current user object.
+ *   The current user object.
+ *
  * @return array
  *   The finalized array of permitted users.
  */
-function workbench_email_filter_workbench_access_editors($rid, $accounts, $editors, $author = FALSE, $user) {
+function workbench_email_filter_workbench_access_editors($rid, $accounts, $editors, $user, $author = FALSE) {
   $emails = array();
 
   foreach ($accounts as $uid => $account) {
@@ -694,10 +696,11 @@ function workbench_email_filter_workbench_access_editors($rid, $accounts, $edito
 /**
  * Function to get all the parents of the workbench access's section.
  *
- * For an active taxonomy scheme.
+ * @param array $sections
+ *   The available sections.
  *
- * @param $node
  * @return mixed
+ *   The available sections.
  */
 function workbench_email_scheme_taxonomy_get_parents($sections) {
   $terms = taxonomy_term_load_multiple($sections);
