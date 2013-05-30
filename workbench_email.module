@@ -823,12 +823,12 @@ function workbench_email_get_editors($role, $sections) {
 /**
  * Get all the editors of workbench access section.
  *
+ * @param $rid
+ *   The role id.
  * @param string $op
  *   The operation being performed.
  * @param array $entity
  *   The entity in which to retrieve information from.
- * @param $rid
- *   The role id.
  *
  * @return array
  *   The available editors.
