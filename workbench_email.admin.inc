@@ -192,11 +192,11 @@ function workbench_email_form($form, &$form_state) {
         // outputted.
         // https://drupal.org/node/1684984
         // https://drupal.org/node/1842738
-        if (function_exists('theme_token_tree_link')) {
-          $token_tree_theme = 'token_tree_link';
-        } else {
-          $token_tree_theme = 'token_tree';
-        }
+        //if (function_exists('theme_token_tree_link')) {
+        //  $token_tree_theme = 'token_tree_link';
+        //} else {
+        $token_tree_theme = 'token_tree';
+        //}
 
         $form['emails']['token_set']['tokens'] = array(
           '#theme' => $token_tree_theme,
