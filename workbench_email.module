@@ -587,11 +587,11 @@ function workbench_email_get_role_by_name($role_name) {
 /**
  * Returns role object.
  *
- * @param array $role_name
- *   The role name
+ * @param array $rid
+ *   The role id.
  *
  * @return stdClass
- *   The role object
+ *   The role object.
  */
 function workbench_email_get_role_by_rid($rid) {
   if ($rid == WORKBENCH_EMAIL_AUTHOR) {
@@ -619,9 +619,9 @@ function workbench_email_get_author_role() {
 /**
  * Returns all available users for an email transition.
  *
- * @param $node
+ * @param object $node
  *   The node object in transition.
- * @param $rid
+ * @param int $rid
  *   The role id of the transition.
  * @param array $editors
  *   The Workbench Access editors array.
@@ -637,7 +637,7 @@ function workbench_email_get_all_transition_users($node, $rid, &$editors = array
     $editors = workbench_email_get_workbench_access_editors('node', array('object' => $node), $rid);
   }
 
-  // load available users for given role
+  // Load available users for given role.
   if ($rid == WORKBENCH_EMAIL_AUTHOR) {
     $account = user_load($node->uid);
     $accounts[$account->uid] = $account;
@@ -651,11 +651,21 @@ function workbench_email_get_all_transition_users($node, $rid, &$editors = array
 }
 
 /**
- * Filters out the workbench access editors from the
- * entire users in a given role.
+ * Filters out the workbench access editors.
  *
- * @param $accounts
- * @param $editors
+ *
+ * @param int $rid
+ *   The role id.
+ * @param array $accounts
+ *   The available users under a given role.
+ * @param array $editors
+ *   The available Workbench Access editors.
+ * @param bool $author
+ *   The author flag.
+ * @param object $user
+ *  The current user object.
+ * @return array
+ *   The finalized array of permitted users.
  */
 function workbench_email_filter_workbench_access_editors($rid, $accounts, $editors, $author = FALSE, $user) {
   $emails = array();
@@ -663,14 +673,14 @@ function workbench_email_filter_workbench_access_editors($rid, $accounts, $edito
   foreach ($accounts as $uid => $account) {
     foreach ($editors as $e_uid => $e_account) {
       if ($e_uid == $uid && array_key_exists($rid, $account['roles'])) {
-        // if the current user is the author and the admin has setup the
+        // If the current user is the author and the admin has setup the
         // transition to notify them, then we force it.
         if ($author) {
           $emails[$account['mail']] = $account['name'];
         }
-        // if the current user is a member of a separate role they
+        // If the current user is a member of a separate role they
         // probably wouldn't want to be notified they just made
-        // a transition. possible setting in the future.
+        // a transition. Possible setting in the future.
         if ($user->mail != $account['mail']) {
           $emails[$account['mail']] = $account['name'];
         }
