@@ -11,7 +11,7 @@
  * builds a form element(s) to allow the user to select users to send
  * an email to.
  *
- * @param array $form
+ * @param array &$form
  *   The form array
  *
  * @param array $form_state
@@ -21,8 +21,9 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
   if (workbench_moderation_node_type_moderated($form['type']['#value'])) {
     $available = FALSE;
     $wrapper_id = 'revision_information';
-    // Workbench Moderation uses "options" fieldset in favor of "revision information"
-    // if "administer roles" perm is given to content moderator.
+    // Workbench Moderation uses "options" fieldset in favor
+    // of "revision information" if "administer roles" perm is
+    // given to content moderator.
     if (isset($form['revision_information']['workbench_moderation_state_new'])) {
       $wrapper_id = 'revision_information';
       $available = TRUE;
@@ -90,10 +91,10 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
           $access = FALSE;
         }
 
-        // if workbench access is off and editors is empty, render element
+        // If workbench access is off and editors is empty, render element.
         if (!module_exists('workbench_access')) {
           $access = TRUE;
-        } // if the module exists and editors
+        } // If the module exists and editors.
         else {
           if (module_exists('workbench_access') && $editors) {
             $access = TRUE;
@@ -108,8 +109,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
         if ($email_transition->from_name == $current_from_state
           && $email_transition->to_name == $form_moderation_state
           && !$email_transition->automatic
-          && $access
-        ) {
+          && $access) {
           workbench_email_create_form_element($form, $email_transition, $editors);
         }
       }

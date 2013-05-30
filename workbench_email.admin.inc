@@ -79,7 +79,6 @@ function workbench_email_form($form, &$form_state) {
       if (isset($workbench_email[$transition->from_name . '_to_' . $transition->to_name][$rid])) {
         $default_value = $workbench_email[$transition->from_name . '_to_' . $transition->to_name][$rid]->automatic;
       }
-      // if auto notify
       $display = 'display:none';
       if ($workbench_email) {
         $display = 'display:block';
@@ -121,7 +120,7 @@ function workbench_email_form($form, &$form_state) {
     '#collapsed' => TRUE,
     '#attributes' => array('style' => $style),
     '#prefix' => '<div id="workbench-email-emails-container">',
-    '#suffix' => '</div>'
+    '#suffix' => '</div>',
   );
 
   if ($workbench_emails) {
@@ -178,11 +177,11 @@ function workbench_email_form($form, &$form_state) {
 
       // Display the list of available placeholders if token module is installed.
       if (module_exists('token')) {
-        require_once(DRUPAL_ROOT . '/' . drupal_get_path('module', 'token') . '/token.pages.inc');
+        module_load_include('inc', 'token', 'token.pages');
         $form['emails']['token_set'] = array(
           '#type' => 'fieldset',
           '#title' => t('Available Tokens'),
-          '#collapsible' => TRUE
+          '#collapsible' => TRUE,
         );
 
         // Use the token_tree_link theme if available.
@@ -192,15 +191,15 @@ function workbench_email_form($form, &$form_state) {
         // outputted.
         // https://drupal.org/node/1684984
         // https://drupal.org/node/1842738
-        //if (function_exists('theme_token_tree_link')) {
-        //  $token_tree_theme = 'token_tree_link';
-        //} else {
+        // if (function_exists('theme_token_tree_link')) {
+        //   $token_tree_theme = 'token_tree_link';
+        // } else {
         $token_tree_theme = 'token_tree';
-        //}
+        // }
 
         $form['emails']['token_set']['tokens'] = array(
           '#theme' => $token_tree_theme,
-          '#token_types' => array('node', 'user')
+          '#token_types' => array('node', 'user'),
         );
       }
     }
@@ -224,10 +223,13 @@ function workbench_email_form($form, &$form_state) {
  *
  * Clears out the messages and rebuilds the form.
  *
- * @param $form
- * @param $form_state
+ * @param array $form
+ *   The form array
+ * @param array $form_state
+ *   The form state array
  *
- * @return mixed
+ * @return array
+ *   The form container
  */
 function workbench_email_ajax_form_submit(&$form, &$form_state) {
   $form = drupal_rebuild_form('workbench_email_form', $form_state, $form);
@@ -282,7 +284,7 @@ function theme_workbench_email_form($variables) {
       'rows' => $rows,
       'attributes' => array(
         'class' => array('width-auto'),
-        'id' => array('workbench-email-table')
+        'id' => array('workbench-email-table'),
       )
     )
   );
@@ -294,6 +296,7 @@ function theme_workbench_email_form($variables) {
 
 /**
  * Validates the form values.
+ *
  * @param array $form_state
  *   The form_state array
  */
