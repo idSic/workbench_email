@@ -281,7 +281,7 @@ function workbench_email_get_queue() {
  * Retrieves only the moderation permission tasks.
  *
  * @return permission
- *  Returns the permissions for moderating content
+ *   Returns the permissions for moderating content
  */
 function workbench_email_determine_moderation_permissions() {
   // Per-node-type, per-transition permissions.
@@ -327,7 +327,7 @@ function workbench_email_determine_valid_roles() {
 
   $moderation_permissions = workbench_email_determine_moderation_permissions();
   $roles = user_roles();
-  foreach ($roles AS $rid => $role) {
+  foreach ($roles as $rid => $role) {
     // Get a full list of this role's permissions.
     $actual_permissions_set = user_role_permissions(array_filter(array(
       $rid => TRUE,
@@ -335,8 +335,8 @@ function workbench_email_determine_valid_roles() {
     )));
 
     $valid_permissions = array();
-    foreach ($actual_permissions_set AS $role_rid => $actual_permissions) {
-      foreach ($actual_permissions AS $permission => $value) {
+    foreach ($actual_permissions_set as $role_rid => $actual_permissions) {
+      foreach ($actual_permissions as $permission => $value) {
         if (array_key_exists($permission, $moderation_permissions)) {
           $valid_permissions[] = $permission;
         }
@@ -406,7 +406,16 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
 function workbench_email_get($transition = NULL, $rid = NULL, $author = NULL, $automatic = NULL) {
   $emails = array();
   $query = db_select('workbench_emails', 'wve')
-    ->fields('wve', array('rid', 'from_name', 'to_name', 'subject', 'message', 'author', 'automatic'));
+    ->fields('wve', array(
+      'rid',
+      'from_name',
+      'to_name',
+      'subject',
+      'message',
+      'author',
+      'automatic',
+      )
+    );
   if ($transition) {
     $query->condition('wve.from_name', $transition->from_name);
     $query->condition('wve.to_name', $transition->to_name);

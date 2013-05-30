@@ -26,7 +26,7 @@
 function hook_workbench_email_create_form_element_alter(&$form, $email_transition, $user_groups) {
   // $user_groups['editors'] => The workbench access editors. Could be empty.
   // $user_groups['users'] => All users available under specified role. When
-  // the rid is 0, it represents the author. 
+  // the rid is 0, it represents the author.
   if ($user_groups['editors'] && $email_transition->from_name == 'draft') {
     $form['example_element']['#default_value'] = '';
   }
