@@ -175,7 +175,7 @@ function workbench_email_form($form, &$form_state) {
     if ($workbench_emails) {
       $form['#tree'] = TRUE;
 
-      // Display the list of available placeholders if token module is installed.
+      // Display list of available placeholders if token module is installed.
       if (module_exists('token')) {
         module_load_include('inc', 'token', 'token.pages');
         $form['emails']['token_set'] = array(
@@ -192,11 +192,10 @@ function workbench_email_form($form, &$form_state) {
         // https://drupal.org/node/1684984
         // https://drupal.org/node/1842738
         // if (function_exists('theme_token_tree_link')) {
-        //   $token_tree_theme = 'token_tree_link';
+        // $token_tree_theme = 'token_tree_link';
         // } else {
         $token_tree_theme = 'token_tree';
         // }
-
         $form['emails']['token_set']['tokens'] = array(
           '#theme' => $token_tree_theme,
           '#token_types' => array('node', 'user'),
@@ -285,7 +284,7 @@ function theme_workbench_email_form($variables) {
       'attributes' => array(
         'class' => array('width-auto'),
         'id' => array('workbench-email-table'),
-      )
+      ),
     )
   );
 

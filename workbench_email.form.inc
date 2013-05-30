@@ -5,7 +5,7 @@
  */
 
 /**
- * Implements hook_node_form_alter().
+ * Implements hook_form_BASE_FORM_ID_alter().
  *
  * Determines the current state and next state. Depending on that criteria
  * builds a form element(s) to allow the user to select users to send
@@ -91,18 +91,15 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
           $access = FALSE;
         }
 
-        // If workbench access is off and editors is empty, render element.
         if (!module_exists('workbench_access')) {
           $access = TRUE;
-        } // If the module exists and editors.
+        }
         else {
           if (module_exists('workbench_access') && $editors) {
             $access = TRUE;
-          } // if the rid is the author, render
-          else {
-            if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
-              $access = TRUE;
-            }
+          }
+          else if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
+            $access = TRUE;
           }
         }
 
@@ -120,7 +117,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
 }
 
 /**
- *  Ajax callback function, targets the workbench_email container.
+ * Ajax callback function, targets the workbench_email container.
  *
  * @param array $form
  *   The form array
@@ -135,18 +132,15 @@ function workbench_email_form_node_callback($form, $form_state) {
   return $form['revision_information']['workbench_email'];
 }
 
-
 /**
  * Submit handler for the workbench_email form element.
  *
  * Sends emails to the specific users selected in the form element.
  *
- * @param array $form
- *   The form array
- *
- * @param array $form_state
- *   The form_state array
- *
+ * @param $form
+ *  The form array.
+ * @param $form_state
+ *  The form state array
  */
 function workbench_email_notification_submit($form, &$form_state) {
   if (isset($form_state['values']['workbench_email'])) {
@@ -154,7 +148,8 @@ function workbench_email_notification_submit($form, &$form_state) {
     ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
     foreach ($form_state['values']['workbench_email'] as $rid => $role_emails) {
       foreach ($role_emails as $email) {
-        if (!$email) { // all users = 0
+        // If !$email means all users selected.
+        if (!$email) {
           $accounts = array();
           $editors = array();
           $author = workbench_email_get_all_transition_users($form_state['node'], $rid, $accounts, $editors);
@@ -187,13 +182,10 @@ function workbench_email_notification_submit($form, &$form_state) {
  *
  * @param array $form
  *   The form array passed by reference
- * @param $email_transition
+ * @param object $email_transition
  *   The current transition and its data
  * @param array $editors
  *   The workbench access editors
- *
- * @param object $params
- *   A object containing information relating to the email transition
  */
 function workbench_email_create_form_element(&$form, $email_transition, $editors = array()) {
   $author = FALSE;
@@ -214,13 +206,13 @@ function workbench_email_create_form_element(&$form, $email_transition, $editors
       if ($editors) { // workbench access check
         foreach ($editors as $e_uid => $e_account) {
           if ($e_uid == $uid) {
-            // if the current user is a member of a separate role they probably
-            // wouldn't want to be notified they just made a transition.
-            // possible setting in the future.
+            // If the current user is a member of a separate role they probably
+            // wouldn't want to be notified they just made a transition. This
+            // could be a possible setting in the future.
             if ($user->mail != $account->mail) {
               $emails[$account->mail] = $account->name;
             }
-            // if the current user is the author and the admin has setup the
+            // If the current user is the author and the admin has setup the
             // transition to notify them, then we force it.
             if ($author) {
               $emails[$account->mail] = $account->name;
@@ -229,11 +221,11 @@ function workbench_email_create_form_element(&$form, $email_transition, $editors
         }
       }
       else {
-        // same logic as above.
+        // Same logic as above.
         if ($user->mail != $account->mail) {
           $emails[$account->mail] = $account->name;
         }
-        // same logic as above.
+        // Same logic as above.
         if ($author) {
           $emails[$account->mail] = $account->name;
         }

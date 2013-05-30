@@ -16,14 +16,12 @@
  * ajax events. So this drupal_alter() is provided to gain access
  * to the form element during those ajax events. #kapooya.
  *
- * @param array &$form
- *   The form array.
- * @param object $email_transition
- *   The email transition occurring. Example, draft to
- *   needs review.
- * @param array $user_groups
- *   An associative array of editors and users.
- *
+ * @param array $form
+ *  The form array.
+ * @param $email_transition
+ *  The email transition object. Example, draft to needs review.
+ * @param $user_groups
+ *  An associative array of editors and users.
  */
 function hook_workbench_email_create_form_element_alter(&$form, $email_transition, $user_groups) {
   // $user_groups['editors'] => The workbench access editors. Could be an empty array.
