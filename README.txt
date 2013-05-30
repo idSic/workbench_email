@@ -127,19 +127,3 @@ Workbench Email uses two tables to store emails and email transitions.
 
 ----
 7.  Feature roadmap
-
-* Allow content type specific email transitions / emails - DELAY
-* Implement hooks for specific situation (drupal_alter's) - WHERE???
-* Allow email select list to show up under all moderation areas - BLOCKED
-  (view draft, moderate) - dependant on http://drupal.org/node/1515110
-* Batch send emails, investigate queue_mail modules - START
-* Add a setting for batch processing. - START
-* Reminder, add note on project page and notes in release that feature will be
-  overridden and needs to be re-created in order to default. - START
-* Add developer mode, to display hints to programmer why for instance,
-  state X to state Y occured, but nothing shows on the node edit page.
-  - No user in role X with workbench access configured correctly
-  - No transitions set (visit admin page)
-  - No users defined in role X
-  - No roles defined with permissions correct
-* Add an all users option inside the select list, allowing for mass email.

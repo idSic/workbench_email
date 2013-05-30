@@ -2,6 +2,9 @@ name = Workbench Email
 description = Provides email templates during specific transitions
 package = Workbench
 core = 7.x
+
+configure = admin/config/workbench/email
+
 dependencies[] = workbench_moderation
 dependencies[] = token
 dependencies[] = chosen
