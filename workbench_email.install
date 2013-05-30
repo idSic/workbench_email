@@ -17,32 +17,32 @@ function workbench_email_schema() {
         'not null' => TRUE,
         'description' => 'An auto increment id',
       ),
-      'from_name'  => array(
+      'from_name' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'description' => 'The from state that the email exists',
       ),
-      'to_name'  => array(
+      'to_name' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'description' => 'The to state that this email exists',
       ),
-      'rid'  => array(
+      'rid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
         'description' => 'The role id',
       ),
-      'subject'  => array(
+      'subject' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
         'description' => 'The subject of the email',
       ),
-      'message'  => array(
+      'message' => array(
         'description' => 'The message of the email',
         'type' => 'text',
         'not null' => FALSE,
@@ -58,7 +58,7 @@ function workbench_email_schema() {
       )
     ),
     'indexes' => array(
-      'rid'        => array('rid'),
+      'rid' => array('rid'),
     ),
     'primary key' => array('wid'),
   );

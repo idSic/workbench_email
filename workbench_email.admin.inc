@@ -26,14 +26,14 @@ function workbench_email_form($form, &$form_state) {
     drupal_set_message(t('Moderation is not enabled for any content types. Visit
                          the <a href="@url"> content type administration
                          page</a> to enable moderation for one or more types.',
-                         array('@url' => url('admin/structure/types'))), 'warning');
+      array('@url' => url('admin/structure/types'))), 'warning');
     $form['#disabled'] = TRUE;
   }
   elseif (!$roles) {
     drupal_set_message(t('Moderation is not enabled for any roles. Visit the
                          <a href="@url"> user permissions page</a> to enable moderation
                          for one or more roles.',
-                         array('@url' => url('admin/people/permissions', array('fragment' => 'module-workbench_moderation')))), 'warning');
+      array('@url' => url('admin/people/permissions', array('fragment' => 'module-workbench_moderation')))), 'warning');
     $form['#disabled'] = TRUE;
   }
   else {
@@ -129,7 +129,7 @@ function workbench_email_form($form, &$form_state) {
     foreach ($workbench_emails as $transition_label => $email_transition_set) {
       $state_label = $email_transition_set;
       $transition = array_shift($state_label);
-      $transition_title = t(ucwords($state_labels[$transition->from_name] .' To '.$state_labels[$transition->to_name]));
+      $transition_title = t(ucwords($state_labels[$transition->from_name] . ' To ' . $state_labels[$transition->to_name]));
       $form['emails'][$transition_label] = array(
         '#type' => 'fieldset',
         '#title' => check_plain($transition_title),
@@ -262,7 +262,7 @@ function theme_workbench_email_form($variables) {
 
   $rows = array();
   foreach (element_children($form['transitions']) as $key) {
-    $element = &$form['transitions'][$key];
+    $element = & $form['transitions'][$key];
     if (!isset($element['#markup'])) {
       $row = array('data' => array());
       $row['data']['from'] = drupal_render($element['from_name']);
@@ -278,11 +278,11 @@ function theme_workbench_email_form($variables) {
   }
 
   $table = theme('table', array(
-    'header' => $header,
-    'rows' => $rows,
-    'attributes' => array(
-      'class' => array('width-auto'),
-      'id' =>  array('workbench-email-table')
+      'header' => $header,
+      'rows' => $rows,
+      'attributes' => array(
+        'class' => array('width-auto'),
+        'id' => array('workbench-email-table')
       )
     )
   );
@@ -294,7 +294,6 @@ function theme_workbench_email_form($variables) {
 
 /**
  * Validates the form values.
-
  * @param array $form_state
  *   The form_state array
  */
@@ -342,7 +341,8 @@ function workbench_email_form_submit($form, &$form_state) {
         ($role == 'author' ? $author = 1 : $author = 0);
         $automatic = $transition[$role]['auto_notify'];
         $transition_label = $transition['transition']->from_name . '_to_' . $transition['transition']->to_name;
-        $subject = NULL; $message = NULL;
+        $subject = NULL;
+        $message = NULL;
         if (isset($form_state['values']['emails'])) {
           $message = $form_state['values']['emails'][$transition_label][$rid]['message'];
           $subject = $form_state['values']['emails'][$transition_label][$rid]['subject'];

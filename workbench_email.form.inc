@@ -27,9 +27,11 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       $wrapper_id = 'revision_information';
       $available = TRUE;
     }
-    else if (isset($form['options']['workbench_moderation_state_new'])) {
-      $wrapper_id = 'options';
-      $available = TRUE;
+    else {
+      if (isset($form['options']['workbench_moderation_state_new'])) {
+        $wrapper_id = 'options';
+        $available = TRUE;
+      }
     }
 
     if (!$available) {
@@ -63,11 +65,13 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
     // Initialize to the current state.
     $form_moderation_state = $current_from_state;
     if (!empty($form_state['values']) &&
-      isset($form_state['values']['workbench_moderation_state_new'])) {
+      isset($form_state['values']['workbench_moderation_state_new'])
+    ) {
       $form_moderation_state = $form_state['values']['workbench_moderation_state_new'];
     }
     if (!empty($form_state['values']) &&
-      isset($form_state['values'][$wrapper_id]['workbench_moderation_state_new'])) {
+      isset($form_state['values'][$wrapper_id]['workbench_moderation_state_new'])
+    ) {
       $form_moderation_state = $form_state['values'][$wrapper_id]['workbench_moderation_state_new'];
     }
 
@@ -90,17 +94,22 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
         if (!module_exists('workbench_access')) {
           $access = TRUE;
         } // if the module exists and editors
-        else if (module_exists('workbench_access') && $editors) {
-          $access = TRUE;
-        } // if the rid is the author, render
-        else if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
-          $access = TRUE;
+        else {
+          if (module_exists('workbench_access') && $editors) {
+            $access = TRUE;
+          } // if the rid is the author, render
+          else {
+            if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
+              $access = TRUE;
+            }
+          }
         }
 
         if ($email_transition->from_name == $current_from_state
           && $email_transition->to_name == $form_moderation_state
           && !$email_transition->automatic
-          && $access) {
+          && $access
+        ) {
           workbench_email_create_form_element($form, $email_transition, $editors);
         }
       }
@@ -146,7 +155,8 @@ function workbench_email_notification_submit($form, &$form_state) {
     foreach ($form_state['values']['workbench_email'] as $rid => $role_emails) {
       foreach ($role_emails as $email) {
         if (!$email) { // all users = 0
-          $accounts = array(); $editors = array();
+          $accounts = array();
+          $editors = array();
           $author = workbench_email_get_all_transition_users($form_state['node'], $rid, $accounts, $editors);
           if (module_exists('workbench_access')) {
             $editors = workbench_email_get_workbench_access_editors('node', array('object' => $form_state['node']), $rid);
@@ -155,7 +165,7 @@ function workbench_email_notification_submit($form, &$form_state) {
           if ($editors && $accounts) {
             $emails = workbench_email_filter_workbench_access_editors($rid, $accounts, $editors, $author, $user);
             $email_transition = $form[$wrapper_id]['workbench_email'][$rid]['#hidden'];
-            foreach($emails as $email => $name) {
+            foreach ($emails as $email => $name) {
               workbench_email_mail_send($email, $email_transition, $form_state['node']);
             }
           }

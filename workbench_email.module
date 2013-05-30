@@ -134,7 +134,8 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
         continue;
       }
 
-      $accounts = array(); $editors = array();
+      $accounts = array();
+      $editors = array();
       $author = workbench_email_get_all_transition_users($node, $email_transition->rid, $accounts, $editors);
       if (module_exists('workbench_access')) {
         $editors = workbench_email_get_workbench_access_editors('node', array('object' => $node), $email_transition->rid);
@@ -142,12 +143,12 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
 
       if ($editors && $accounts) {
         $emails = workbench_email_filter_workbench_access_editors($email_transition->rid, $accounts, $editors, TRUE, $user);
-        foreach($emails as $email => $name) {
+        foreach ($emails as $email => $name) {
           workbench_email_mail_send($email, $email_transition, $node);
         }
       }
 
-      if (!$editors) {  // workbench access disabled, or section free
+      if (!$editors) { // workbench access disabled, or section free
         foreach ($accounts as $account) {
           workbench_email_mail_send($account->mail, $email_transition, $node);
         }
@@ -749,7 +750,7 @@ function workbench_email_get_editors($role, $sections) {
   // workbench access editoral assignments by editor.
   // Filter by the roles specified in workbench notify settings.
   $query = db_select('users', 'u');
-  $query->fields('u', array('uid','mail', 'name'));
+  $query->fields('u', array('uid', 'mail', 'name'));
   $query->join('workbench_access_user', 'w', 'u.uid = w.uid');
   $query->join('users_roles', 'r', 'u.uid = r.uid');
   $query->condition('r.rid', $role->rid);
@@ -815,8 +816,10 @@ function workbench_email_get_workbench_access_editors($op = 'node', $entity = ar
     if ($active_scheme == 'taxonomy') {
       $sections = workbench_email_scheme_taxonomy_get_parents($sections);
     }
-    else if ($active_scheme == 'menu') {
-      $sections = workbench_email_scheme_menu_get_parents($sections);
+    else {
+      if ($active_scheme == 'menu') {
+        $sections = workbench_email_scheme_menu_get_parents($sections);
+      }
     }
 
     $role = workbench_email_get_role_by_rid($rid);

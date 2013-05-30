@@ -27,4 +27,3 @@ by teknic: removed #submit handler, added form[actions][submit][#submit][]
            the issue of no NID in emails when first saved.
 by teknic: renamed workbench_email.features.inc function names, fixed
            issue with role being loaded by name instead of rid
-
