@@ -55,7 +55,7 @@ function workbench_email_schema() {
         'not null' => TRUE,
         'default' => 0,
         'description' => 'The author setting',
-      )
+      ),
     ),
     'indexes' => array(
       'rid' => array('rid'),
@@ -67,9 +67,10 @@ function workbench_email_schema() {
 }
 
 /**
- * Implements hook_requirements() to check if workbench_email is configured.
+ * Implements hook_requirements().
  *
- * @param $phase
+ * @param string $phase
+ *   The phase in which requirements are checked.
  */
 function workbench_email_requirements($phase) {
   $requirements = array();
@@ -77,34 +78,25 @@ function workbench_email_requirements($phase) {
   if ($phase == 'runtime') {
     $description = array();
     if (!module_exists('chosen')) {
-      $url = l('Chosen', 'http://drupal.org/project/chosen');
+      $url = l(t('Chosen'), 'http://drupal.org/project/chosen');
       $description[] = t('!chosen is not installed on the site.
       Please download the module to fully support the UI.',
         array('!chosen' => $url));
     }
 
     if (!module_exists('token')) {
-      $url = l('Chosen', 'http://drupal.org/project/token');
+      $url = l(t('Token'), 'http://drupal.org/project/token');
       $description[] = t('!token is not installed on the site.
       Please download the module to fully support email capabilities.',
         array('!token' => $url));
     }
 
     if (!module_exists('workbench_moderation')) {
-      $url = l('Chosen', 'http://drupal.org/project/workbench_moderation');
+      $url = l(t('Workbench Moderation'), 'http://drupal.org/project/workbench_moderation');
       $description[] = t('!workbench_moderation is not installed on the site.
       Please download the module to begin using Workbench Email.',
         array('!workbench_moderation' => $url));
     }
-
-//    $queue_length = _queue_mail_get_queue()->numberOfItems();
-//    $requirements['queue_mail'] = array(
-//      'title' => t('Queue mail'),
-//      'value' => format_plural($queue_length, '1 mail currently queued for sending.', '@count mails currently queued for sending.'),
-//      'severity' => $queue_length > 0 ? REQUIREMENT_INFO : REQUIREMENT_OK,
-//      'description' => t('Sending of queued mails happens on cron. You can <a href="@cron_link">run cron manually</a>.', array('@cron_link' => url('admin/reports/status/run-cron', array('query' => drupal_get_destination())))),
-//    );
-//    break;
 
     if (!empty($description)) {
       $requirements['workbench_email'] = array(
@@ -247,8 +239,7 @@ function workbench_email_update_7004() {
 /**
  * Implements hook_update_N().
  *
- * Add author flag to table
- *
+ * Add author flag to table.
  */
 function workbench_email_update_7005() {
   $field = array(
@@ -256,7 +247,7 @@ function workbench_email_update_7005() {
     'unsigned' => TRUE,
     'not null' => TRUE,
     'default' => 0,
-    'description' => 'The author setting'
+    'description' => 'The author setting',
   );
   db_add_field('workbench_emails', 'author', $field);
 }
@@ -264,8 +255,7 @@ function workbench_email_update_7005() {
 /**
  * Implements hook_update_N().
  *
- * Add automatic flag to table
- *
+ * Add automatic flag to table.
  */
 function workbench_email_update_7006() {
   $field = array(
@@ -273,7 +263,7 @@ function workbench_email_update_7006() {
     'unsigned' => TRUE,
     'not null' => TRUE,
     'default' => 0,
-    'description' => 'The automatic setting'
+    'description' => 'The automatic setting',
   );
   db_add_field('workbench_emails', 'automatic', $field);
 }

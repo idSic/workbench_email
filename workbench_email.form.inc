@@ -98,7 +98,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
           if (module_exists('workbench_access') && $editors) {
             $access = TRUE;
           }
-          else if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
+          elseif ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
             $access = TRUE;
           }
         }
@@ -137,10 +137,10 @@ function workbench_email_form_node_callback($form, $form_state) {
  *
  * Sends emails to the specific users selected in the form element.
  *
- * @param $form
- *  The form array.
- * @param $form_state
- *  The form state array
+ * @param array $form
+ *   The form array.
+ * @param array $form_state
+ *   The form state array
  */
 function workbench_email_notification_submit($form, &$form_state) {
   if (isset($form_state['values']['workbench_email'])) {
@@ -203,7 +203,7 @@ function workbench_email_create_form_element(&$form, $email_transition, $editors
   if ($users) {
     $emails = array();
     foreach ($users as $uid => $account) {
-      if ($editors) { // workbench access check
+      if ($editors) {
         foreach ($editors as $e_uid => $e_account) {
           if ($e_uid == $uid) {
             // If the current user is a member of a separate role they probably
@@ -249,7 +249,7 @@ function workbench_email_create_form_element(&$form, $email_transition, $editors
         '#description' => $description,
         '#multiple' => TRUE,
         '#hidden' => $email_transition,
-        '#attributes' => array('class' => array('chosen-widget'))
+        '#attributes' => array('class' => array('chosen-widget')),
       );
 
       $user_groups = array('editors' => $editors, 'users' => $users);

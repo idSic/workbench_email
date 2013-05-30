@@ -3,6 +3,7 @@
  * @file
  * Code for the Workbench Email Module.
  */
+
 define('WORKBENCH_EMAIL_AUTHOR', 0);
 define('WORKBENCH_EMAIL_QUEUE_NAME', 'workbench_email_queue_mail');
 
@@ -112,14 +113,14 @@ function workbench_email_features_api() {
 /**
  * Implements hook_workbench_moderation_transition().
  *
- * @param $node
- *  The node that is being transitioned.
+ * @param object $node
+ *   The node that is being transitioned.
  *
- * @param $previous_state
- *  The state of the revision before the transition occurred.
+ * @param string $previous_state
+ *   The state of the revision before the transition occurred.
  *
- * @param $new_state
- *  The new state of the revision.
+ * @param string $new_state
+ *   The new state of the revision.
  */
 function workbench_email_workbench_moderation_transition($node, $previous_state, $new_state) {
   global $user;
@@ -148,7 +149,8 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
         }
       }
 
-      if (!$editors) { // workbench access disabled, or section free
+      if (!$editors) {
+        // Workbench access is disabled or the section free.
         foreach ($accounts as $account) {
           workbench_email_mail_send($account->mail, $email_transition, $node);
         }
@@ -187,15 +189,15 @@ function workbench_email_mail_send($email, $email_transition, $node) {
     );
 
     watchdog('workbench_email',
-      t('No workbench email template found, so no email was sent.
+      'No workbench email template found, so no email was sent.
       Contact your system admin to resolve this issue.
       From State: !from_state
       New State: !new_state
-      Role: !role_name'),
+      Role: !role_name',
       array(
         '!from_state' => $email_transition->from_name,
         '!new_state' => $email_transition->to_name,
-        '!role_name' => $role->name
+        '!role_name' => $role->name,
       )
     );
     return;
@@ -217,17 +219,17 @@ function workbench_email_mail_send($email, $email_transition, $node) {
                          email notifications. No messages were
                          sent.'), 'error', FALSE);
     watchdog('workbench_email',
-      t('There was a problem sending the email notifications.
+      'There was a problem sending the email notifications.
       No messages were sent.
       From State: !from_state
       New State: !new_state
       Role: !role_name
-      To: !to'),
+      To: !to',
       array(
         '!from_state' => $email_transition->from_name,
         '!new_state' => $email_transition->to_name,
         '!role_name' => $role->name,
-        '!to' => $to
+        '!to' => $to,
       )
     );
   }
@@ -257,14 +259,14 @@ function workbench_email_cron_queue_info() {
 
 /**
  * Implements hook_mail_alter().
+ *
+ * @param array $message
+ *   The fully rendered message.
  */
 function workbench_email_mail_alter(&$message) {
-  //$mail_keys = variable_get('queue_mail_keys', '');
-  //if (drupal_match_path($message['id'], $mail_keys)) {
-
   // Store the message for sending on cron.
   workbench_email_get_queue()->createItem($message);
-  // And prevent the message from being sent instantly.
+  // Prevent the message from being sent.
   $message['send'] = FALSE;
 }
 
