@@ -153,7 +153,7 @@ function workbench_email_notification_submit($form, &$form_state) {
           }
 
           if ($editors && $accounts) {
-            $emails = workbench_email_filter_workbench_access_editors($accounts, $editors, $author, $user);
+            $emails = workbench_email_filter_workbench_access_editors($rid, $accounts, $editors, $author, $user);
             $email_transition = $form[$wrapper_id]['workbench_email'][$rid]['#hidden'];
             foreach($emails as $email => $name) {
               workbench_email_mail_send($email, $email_transition, $form_state['node']);

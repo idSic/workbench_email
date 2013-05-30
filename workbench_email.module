@@ -141,7 +141,7 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
       }
 
       if ($editors && $accounts) {
-        $emails = workbench_email_filter_workbench_access_editors($email_transition, $accounts, $editors, TRUE, $user);
+        $emails = workbench_email_filter_workbench_access_editors($email_transition->rid, $accounts, $editors, TRUE, $user);
         foreach($emails as $email => $name) {
           workbench_email_mail_send($email, $email_transition, $node);
         }
@@ -636,12 +636,12 @@ function workbench_email_get_all_transition_users($node, $rid, &$editors = array
  * @param $accounts
  * @param $editors
  */
-function workbench_email_filter_workbench_access_editors($email_transition, $accounts, $editors, $author = FALSE, $user) {
+function workbench_email_filter_workbench_access_editors($rid, $accounts, $editors, $author = FALSE, $user) {
   $emails = array();
 
   foreach ($accounts as $uid => $account) {
     foreach ($editors as $e_uid => $e_account) {
-      if ($e_uid == $uid && array_key_exists($email_transition->rid, $account['roles'])) {
+      if ($e_uid == $uid && array_key_exists($rid, $account['roles'])) {
         // if the current user is the author and the admin has setup the
         // transition to notify them, then we force it.
         if ($author) {
