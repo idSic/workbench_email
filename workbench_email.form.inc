@@ -87,7 +87,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
         $editors = array();
         $access = TRUE;
         if ($workbench_access) {
-          $editors = workbench_email_get_workbench_access_editors('form', array('object' => $form), $rid);
+          $editors = workbench_email_get_workbench_access_editors($rid, 'form', array('object' => $form));
           $access = FALSE;
         }
 
@@ -154,7 +154,7 @@ function workbench_email_notification_submit($form, &$form_state) {
           $editors = array();
           $author = workbench_email_get_all_transition_users($form_state['node'], $rid, $accounts, $editors);
           if (module_exists('workbench_access')) {
-            $editors = workbench_email_get_workbench_access_editors('node', array('object' => $form_state['node']), $rid);
+            $editors = workbench_email_get_workbench_access_editors($rid, 'node', array('object' => $form_state['node']));
           }
 
           if ($editors && $accounts) {

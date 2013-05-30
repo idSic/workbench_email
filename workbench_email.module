@@ -139,7 +139,7 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
       $editors = array();
       $author = workbench_email_get_all_transition_users($node, $email_transition->rid, $accounts, $editors);
       if (module_exists('workbench_access')) {
-        $editors = workbench_email_get_workbench_access_editors('node', array('object' => $node), $email_transition->rid);
+        $editors = workbench_email_get_workbench_access_editors($email_transition->rid, 'node', array('object' => $node));
       }
 
       if ($editors && $accounts) {
@@ -635,7 +635,7 @@ function workbench_email_get_all_transition_users($node, $rid, &$editors = array
   $author = FALSE;
 
   if (module_exists('workbench_access')) {
-    $editors = workbench_email_get_workbench_access_editors('node', array('object' => $node), $rid);
+    $editors = workbench_email_get_workbench_access_editors($rid, 'node', array('object' => $node));
   }
 
   // Load available users for given role.
@@ -661,10 +661,10 @@ function workbench_email_get_all_transition_users($node, $rid, &$editors = array
  *   The available users under a given role.
  * @param array $editors
  *   The available Workbench Access editors.
- * @param bool $author
- *   The author flag.
  * @param object $user
  *   The current user object.
+ * @param bool $author
+ *   The author flag.
  *
  * @return array
  *   The finalized array of permitted users.
@@ -727,10 +727,11 @@ function workbench_email_scheme_taxonomy_get_parents($sections) {
 /**
  * Function to get all the parents of the workbench access's section.
  *
- * For an active menu scheme.
+ * @param array $sections
+ *   The available sections.
  *
- * @param $node
  * @return mixed
+ *   The available sections.
  */
 function workbench_email_scheme_menu_get_parents($sections) {
   // Get the menu parent items.
@@ -770,18 +771,22 @@ function workbench_email_scheme_menu_get_parents($sections) {
  * Function to get all the editors of workbench access section.
  *
  * Filter by the roles specified in workbench notify settings
- * for individually editors
+ * for individually editors.
  *
- * @param $roles
- * @param $sections
+ * @param object $role
+ *   The role object.
+ * @param array $sections
+ *   The available sections.
+ *
  * @return array
+ *   The available editors.
  */
 function workbench_email_get_editors($role, $sections) {
   $editors = array();
 
-  // Get the editors individually specified in
-  // workbench access editoral assignments by editor.
-  // Filter by the roles specified in workbench notify settings.
+  // Get the editors individually specified in workbench access
+  // editoral assignments by editor. Filter by the roles specified
+  // in workbench notify settings.
   $query = db_select('users', 'u');
   $query->fields('u', array('uid', 'mail', 'name'));
   $query->join('workbench_access_user', 'w', 'u.uid = w.uid');
@@ -819,12 +824,16 @@ function workbench_email_get_editors($role, $sections) {
  * Get all the editors of workbench access section.
  *
  * @param string $op
+ *   The operation being performed.
  * @param array $entity
+ *   The entity in which to retrieve information from.
  * @param $rid
+ *   The role id.
  *
  * @return array
+ *   The available editors.
  */
-function workbench_email_get_workbench_access_editors($op = 'node', $entity = array(), $rid) {
+function workbench_email_get_workbench_access_editors($rid, $op = 'node', $entity = array()) {
   $sections = array();
 
   $active_scheme = variable_get('workbench_access');
@@ -862,4 +871,3 @@ function workbench_email_get_workbench_access_editors($op = 'node', $entity = ar
   }
   return $editors;
 }
-
