@@ -267,3 +267,12 @@ function workbench_email_update_7006() {
   );
   db_add_field('workbench_emails', 'automatic', $field);
 }
+
+/**
+ * Implements hook_update_N().
+ *
+ * Adds the workbench email queue
+ */
+function workbench_email_update_7007() {
+  workbench_email_get_queue()->createQueue();
+}

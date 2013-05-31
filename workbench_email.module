@@ -138,10 +138,6 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
       $accounts = array();
       $editors = array();
       $author = workbench_email_get_all_transition_users($node, $email_transition->rid, $accounts, $editors);
-      if (module_exists('workbench_access')) {
-        $editors = workbench_email_get_workbench_access_editors($email_transition->rid, 'node', array('object' => $node));
-      }
-
       if ($editors && $accounts) {
         $emails = workbench_email_filter_workbench_access_editors($email_transition->rid, $accounts, $editors, $user, TRUE);
         foreach ($emails as $email => $name) {

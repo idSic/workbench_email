@@ -81,33 +81,40 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       $workbench_access = TRUE;
     }
 
+    global $user;
     $workbench_emails = workbench_email_get();
     foreach ($workbench_emails as $transition => $email_roles) {
       foreach ($email_roles as $rid => $email_transition) {
-        $editors = array();
-        $access = TRUE;
-        if ($workbench_access) {
-          $editors = workbench_email_get_workbench_access_editors($rid, 'form', array('object' => $form));
-          $access = FALSE;
-        }
-
-        if (!module_exists('workbench_access')) {
-          $access = TRUE;
+        if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
+          $users[$user->uid] = $user;
+          $description = t('Select the author for notification');
         }
         else {
-          if (module_exists('workbench_access') && $editors) {
-            $access = TRUE;
-          }
-          elseif ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
-            $access = TRUE;
-          }
+          $users = workbench_email_get_users($email_transition->rid);
+          $description = t('Select one or more users to notify');
+        }
+
+        $accounts = array();
+        $editors = array();
+        $emails = array();
+        $author = workbench_email_get_all_transition_users($form['#node'], $email_transition->rid, $accounts, $editors);
+        if ($editors && $accounts) {
+          $emails = workbench_email_filter_workbench_access_editors($email_transition->rid, $accounts, $editors, $user, TRUE);
         }
 
         if ($email_transition->from_name == $current_from_state
           && $email_transition->to_name == $form_moderation_state
           && !$email_transition->automatic
-          && $access) {
-          workbench_email_create_form_element($form, $email_transition, $editors);
+          && $emails) {
+          $settings = array(
+            'email_transition' => $email_transition,
+            'emails' => $emails,
+            'auhor' => $author,
+            'description' => $description,
+            'editors' => $editors,
+            'users' => $users,
+          );
+          workbench_email_create_form_element($form, $settings);
         }
       }
     }
@@ -153,10 +160,6 @@ function workbench_email_notification_submit($form, &$form_state) {
           $accounts = array();
           $editors = array();
           $author = workbench_email_get_all_transition_users($form_state['node'], $rid, $accounts, $editors);
-          if (module_exists('workbench_access')) {
-            $editors = workbench_email_get_workbench_access_editors($rid, 'node', array('object' => $form_state['node']));
-          }
-
           if ($editors && $accounts) {
             $emails = workbench_email_filter_workbench_access_editors($rid, $accounts, $editors, $user, $author);
             $email_transition = $form[$wrapper_id]['workbench_email'][$rid]['#hidden'];
@@ -187,73 +190,32 @@ function workbench_email_notification_submit($form, &$form_state) {
  * @param array $editors
  *   The workbench access editors
  */
-function workbench_email_create_form_element(&$form, $email_transition, $editors = array()) {
-  $author = FALSE;
-  global $user;
-  if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
-    $users[$user->uid] = $user;
-    $author = TRUE;
-    $description = t('Select the author for notification');
+function workbench_email_create_form_element(&$form, $settings) {
+  $email_transition = $settings['email_transition'];
+  $emails = $settings['emails'];
+  $author = $settings['author'];
+  $description = $settings['description'];
+  $editors = $settings['editors'];
+  $users = $settings['users'];
+  if ($author) {
+    $role = workbench_email_get_author_role();
   }
   else {
-    $users = workbench_email_get_users($email_transition->rid);
-    $description = t('Select one or more users to notify');
+    $role = user_role_load($email_transition->rid);
+    array_unshift($emails, t('-- All Users --'));
   }
 
-  if ($users) {
-    $emails = array();
-    foreach ($users as $uid => $account) {
-      if ($editors) {
-        foreach ($editors as $e_uid => $e_account) {
-          if ($e_uid == $uid) {
-            // If the current user is a member of a separate role they probably
-            // wouldn't want to be notified they just made a transition. This
-            // could be a possible setting in the future.
-            if ($user->mail != $account->mail) {
-              $emails[$account->mail] = $account->name;
-            }
-            // If the current user is the author and the admin has setup the
-            // transition to notify them, then we force it.
-            if ($author) {
-              $emails[$account->mail] = $account->name;
-            }
-          }
-        }
-      }
-      else {
-        // Same logic as above.
-        if ($user->mail != $account->mail) {
-          $emails[$account->mail] = $account->name;
-        }
-        // Same logic as above.
-        if ($author) {
-          $emails[$account->mail] = $account->name;
-        }
-      }
-    }
+  ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
+  $form[$wrapper_id]['workbench_email'][$role->rid] = array(
+    '#type' => 'select',
+    '#title' => t("@role_name", array('@role_name' => ucwords($role->name))),
+    '#options' => $emails,
+    '#description' => $description,
+    '#multiple' => TRUE,
+    '#hidden' => $email_transition,
+    '#attributes' => array('class' => array('chosen-widget')),
+  );
 
-    if ($emails) {
-      if ($author) {
-        $role = workbench_email_get_author_role();
-      }
-      else {
-        $role = user_role_load($email_transition->rid);
-        array_unshift($emails, t('-- All Users --'));
-      }
-
-      ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
-      $form[$wrapper_id]['workbench_email'][$role->rid] = array(
-        '#type' => 'select',
-        '#title' => t("@role_name", array('@role_name' => ucwords($role->name))),
-        '#options' => $emails,
-        '#description' => $description,
-        '#multiple' => TRUE,
-        '#hidden' => $email_transition,
-        '#attributes' => array('class' => array('chosen-widget')),
-      );
-
-      $user_groups = array('editors' => $editors, 'users' => $users);
-      drupal_alter('workbench_email_create_form_element', $form, $email_transition, $user_groups);
-    }
-  }
+  $user_groups = array('editors' => $editors, 'users' => $users);
+  drupal_alter('workbench_email_create_form_element', $form, $email_transition, $user_groups);
 }
