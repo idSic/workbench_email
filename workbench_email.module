@@ -123,33 +123,17 @@ function workbench_email_features_api() {
  *   The new state of the revision.
  */
 function workbench_email_workbench_moderation_transition($node, $previous_state, $new_state) {
-  global $user;
   $transition = new stdClass();
   $transition->from_name = $previous_state;
   $transition->to_name = $new_state;
   $workbench_emails = workbench_email_get($transition, 0, 0, 1);
   foreach ($workbench_emails as $transition_label => $email_transition_set) {
     foreach ($email_transition_set as $rid => $email_transition) {
-      if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {
-        workbench_email_mail_send($user->mail, $email_transition, $node);
-        continue;
-      }
-
-      $accounts = array();
-      $editors = array();
-      $author = workbench_email_get_all_transition_users($node, $email_transition->rid, $accounts, $editors);
-      if ($editors && $accounts) {
-        $emails = workbench_email_filter_workbench_access_editors($email_transition->rid, $accounts, $editors, $user, TRUE);
-        foreach ($emails as $email => $name) {
-          workbench_email_mail_send($email, $email_transition, $node);
-        }
-      }
-
-      if (!$editors) {
-        // Workbench access is disabled or the section free.
-        foreach ($accounts as $account) {
-          workbench_email_mail_send($account->mail, $email_transition, $node);
-        }
+      $accounts = array(); $editors = array();
+      $author = workbench_email_get_all_transition_users($node, 'node', $email_transition->rid, $accounts, $editors);
+      $emails = workbench_email_filter_users($email_transition->rid, $accounts, $editors, $author);
+      foreach ($emails as $email => $name) {
+        workbench_email_mail_send($email, $email_transition, $node);
       }
     }
   }
@@ -528,7 +512,6 @@ function workbench_email_get_users($rid) {
   foreach ($result as $row) {
     $uids[] = $row->uid;
   }
-  $users = array();
   $users = user_load_multiple($uids);
   return $users;
 }
@@ -615,8 +598,10 @@ function workbench_email_get_author_role() {
 /**
  * Returns all available users for an email transition.
  *
- * @param object $node
- *   The node object in transition.
+ * @param mixed $data
+ *   The data being passed (form or node)
+ * @param string $op
+ *   The operation (form or node)
  * @param int $rid
  *   The role id of the transition.
  * @param array $editors
@@ -627,16 +612,17 @@ function workbench_email_get_author_role() {
  * @return bool
  *   Returns true if its the author transition.
  */
-function workbench_email_get_all_transition_users($node, $rid, &$editors = array(), &$accounts = array()) {
+function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts = array(), &$editors = array()) {
   $author = FALSE;
-
-  if (module_exists('workbench_access')) {
-    $editors = workbench_email_get_workbench_access_editors($rid, 'node', array('object' => $node));
-  }
 
   // Load available users for given role.
   if ($rid == WORKBENCH_EMAIL_AUTHOR) {
-    $account = user_load($node->uid);
+    if ($op == 'form') {
+      $account = user_load($data['uid']['#value']);
+    }
+    else {
+      $account = user_load($data->uid);
+    }
     $accounts[$account->uid] = $account;
     $author = TRUE;
   }
@@ -644,12 +630,15 @@ function workbench_email_get_all_transition_users($node, $rid, &$editors = array
     $accounts = workbench_email_get_users($rid);
   }
 
+  if (module_exists('workbench_access') && !$author) {
+    $editors = workbench_email_get_workbench_access_editors($rid, $op, array('data' => $data));
+  }
+
   return $author;
 }
 
 /**
- * Filters out the workbench access editors.
- *
+ * Filters out the users based on criteria.
  *
  * @param int $rid
  *   The role id.
@@ -657,30 +646,89 @@ function workbench_email_get_all_transition_users($node, $rid, &$editors = array
  *   The available users under a given role.
  * @param array $editors
  *   The available Workbench Access editors.
- * @param object $user
- *   The current user object.
+ * @param bool $author
+ *   The author flag.
+ *
+ * @return array
+ *   The finalized array of permitted users (email / name).
+ */
+function workbench_email_filter_users($rid, $accounts = array(), $editors = array(), $author = FALSE) {
+  $emails = array();
+  if ($editors && $accounts) {
+    $emails = workbench_email_filter_workbench_access_users($rid, $accounts, $editors, $author);
+  }
+  else if ($accounts){
+    $emails = _workbench_email_filter_users($accounts, $author);
+  }
+
+  return $emails;
+}
+
+/**
+ * Returns a list of filtered users / emails.
+ *
+ * @param array $accounts
+ *   The available users under a given role.
  * @param bool $author
  *   The author flag.
  *
  * @return array
  *   The finalized array of permitted users.
  */
-function workbench_email_filter_workbench_access_editors($rid, $accounts, $editors, $user, $author = FALSE) {
+function _workbench_email_filter_users($accounts, $author) {
+  global $user;
   $emails = array();
+  foreach ($accounts as $uid => $account) {
+    // If the current user is the author and the admin has setup the
+    // transition to notify them, then we force it.
+    if ($author) {
+      $emails[$account->mail] = $account->name;
+    }
+    // If the current user is a member of a separate role they
+    // probably wouldn't want to be notified they just made
+    // a transition. Possible setting in the future.
+    if ($user->mail != $account->mail) {
+      $emails[$account->mail] = $account->name;
+    }
+  }
 
+  return $emails;
+}
+
+/**
+ * Returns a list of users / emails.
+ *
+ * Filters out users who don't have acccess to the
+ * workbench access protected section.
+ *
+ * @param int $rid
+ *   The role id.
+ * @param array $accounts
+ *   The available users under a given role.
+ * @param array $editors
+ *   The available Workbench Access editors..
+ * @param bool $author
+ *   The author flag.
+ *
+ * @return array
+ *   The finalized array of permitted users.
+ */
+function workbench_email_filter_workbench_access_users($rid, $accounts, $editors, $author) {
+  global $user;
+  $emails = array();
   foreach ($accounts as $uid => $account) {
     foreach ($editors as $e_uid => $e_account) {
-      if ($e_uid == $uid && array_key_exists($rid, $account['roles'])) {
+      if ($e_uid == $uid && array_key_exists($rid, $account->roles)) {
         // If the current user is the author and the admin has setup the
         // transition to notify them, then we force it.
         if ($author) {
-          $emails[$account['mail']] = $account['name'];
+          $emails[$account->mail] = $account->name;
         }
         // If the current user is a member of a separate role they
         // probably wouldn't want to be notified they just made
         // a transition. Possible setting in the future.
-        if ($user->mail != $account['mail']) {
-          $emails[$account['mail']] = $account['name'];
+        if ($user->mail != $account->mail) {
+          $emails[$account->mail] = $account->name;
         }
       }
     }
@@ -829,18 +877,18 @@ function workbench_email_get_editors($role, $sections) {
  * @return array
  *   The available editors.
  */
-function workbench_email_get_workbench_access_editors($rid, $op = 'node', $entity = array()) {
+function workbench_email_get_workbench_access_editors($rid, $op = 'node', $data = array()) {
   $sections = array();
 
   $active_scheme = variable_get('workbench_access');
   if ($op == 'form') {
-    if (isset($entity['object']['workbench_access']['workbench_access']['#options'])) {
-      $sections = $entity['object']['workbench_access']['workbench_access']['#options'];
+    if (isset($data['data']['workbench_access']['workbench_access']['#options'])) {
+      $sections = $data['data']['workbench_access']['workbench_access']['#options'];
     }
   }
   else {
-    if (isset($entity['object']->workbench_access)) {
-      $sections = $entity['object']->workbench_access;
+    if (isset($data['data']->workbench_access)) {
+      $sections = $data['data']->workbench_access;
     }
   }
 
