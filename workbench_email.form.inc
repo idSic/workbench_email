@@ -76,12 +76,11 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
       $form_moderation_state = $form_state['values'][$wrapper_id]['workbench_moderation_state_new'];
     }
 
-    global $user;
     $workbench_emails = workbench_email_get();
     foreach ($workbench_emails as $transition => $email_roles) {
       foreach ($email_roles as $rid => $email_transition) {
         $accounts = array(); $editors = array();
-        $author = workbench_email_get_all_transition_users($form, 'form', $email_transition->rid, $accounts, $editors);
+        $author = workbench_email_get_all_transition_users($form_state, 'form', $email_transition->rid, $accounts, $editors);
         $emails = workbench_email_filter_users($email_transition->rid, $accounts, $editors, $author);
         if ($email_transition->from_name == $current_from_state &&
           $email_transition->to_name == $form_moderation_state &&
@@ -132,21 +131,17 @@ function workbench_email_form_node_callback($form, $form_state) {
  */
 function workbench_email_notification_submit($form, &$form_state) {
   if (isset($form_state['values']['workbench_email'])) {
-    global $user;
     ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
     foreach ($form_state['values']['workbench_email'] as $rid => $role_emails) {
       foreach ($role_emails as $email) {
-        // If !$email means all users selected.
+        // If !$email means all users option selected.
         if (!$email) {
-          $accounts = array();
-          $editors = array();
-          $author = workbench_email_get_all_transition_users($form_state['node'], $rid, $accounts, $editors);
-          if ($editors && $accounts) {
-            $emails = workbench_email_filter_workbench_access_editors($rid, $accounts, $editors, $user, $author);
-            $email_transition = $form[$wrapper_id]['workbench_email'][$rid]['#hidden'];
-            foreach ($emails as $email => $name) {
-              workbench_email_mail_send($email, $email_transition, $form_state['node']);
-            }
+          $accounts = array(); $editors = array();
+          $author = workbench_email_get_all_transition_users($form_state['node'], 'node', $rid, $accounts, $editors);
+          $emails = workbench_email_filter_users($rid, $accounts, $editors, $author);
+          $email_transition = $form[$wrapper_id]['workbench_email'][$rid]['#hidden'];
+          foreach ($emails as $email => $name) {
+            workbench_email_mail_send($email, $email_transition, $form_state['node']);
           }
         }
         else {
@@ -181,7 +176,9 @@ function workbench_email_create_form_element(&$form, $settings) {
   }
   else {
     $role = user_role_load($email_transition->rid);
-    array_unshift($emails, t('-- All Users --'));
+    if (count($emails) > 1) {
+      array_unshift($emails, t('-- All Users --'));
+    }
   }
 
   if ($email_transition->rid == WORKBENCH_EMAIL_AUTHOR) {

@@ -618,7 +618,7 @@ function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts =
   // Load available users for given role.
   if ($rid == WORKBENCH_EMAIL_AUTHOR) {
     if ($op == 'form') {
-      $account = user_load($data['uid']['#value']);
+      $account = user_load($data['values']['uid']);
     }
     else {
       $account = user_load($data->uid);
@@ -882,12 +882,12 @@ function workbench_email_get_workbench_access_editors($rid, $op = 'node', $data 
 
   $active_scheme = variable_get('workbench_access');
   if ($op == 'form') {
-    if (isset($data['data']['workbench_access']['workbench_access']['#options'])) {
-      $sections = $data['data']['workbench_access']['workbench_access']['#options'];
+    if ($data['data']['values']['workbench_access']) {
+      $sections = $data['data']['values']['workbench_access'];
     }
   }
   else {
-    if (isset($data['data']->workbench_access)) {
+    if ($data['data']->workbench_access) {
       $sections = $data['data']->workbench_access;
     }
   }
