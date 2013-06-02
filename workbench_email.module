@@ -615,6 +615,7 @@ function workbench_email_get_author_role() {
 function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts = array(), &$editors = array()) {
   $author = FALSE;
   $workbench_access = FALSE;
+  $section_selected = FALSE;
 
   // Load available users for given role.
   if ($rid == WORKBENCH_EMAIL_AUTHOR) {
@@ -632,13 +633,18 @@ function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts =
   }
 
   if (module_exists('workbench_access')) {
-    $editors = workbench_email_get_workbench_access_editors($rid, $op, array('data' => $data));
+    $sections = workbench_email_get_workbench_access_sections($op, array('data' => $data));
+    if ($sections) {
+      $editors = workbench_email_get_workbench_access_editors($rid, $sections);
+      $section_selected = TRUE;
+    }
     $workbench_access = TRUE;
   }
 
   return array(
     'author' => $author,
     'workbench_access' => $workbench_access,
+    'section_selected' => $section_selected,
   );
 }
 
@@ -662,7 +668,10 @@ function workbench_email_filter_users($rid, $accounts = array(), $editors = arra
   if ($editors && $accounts && $flags['workbench_access'] && !$flags['author']) {
     $emails = workbench_email_filter_workbench_access_users($rid, $accounts, $editors, $flags['author']);
   }
-  else if ($accounts && (!$flags['workbench_access'] || $flags['author'])){
+  else if ($accounts && $flags['workbench_access'] && $flags['author'] && $flags['section_selected']){
+    $emails = _workbench_email_filter_users($accounts, $flags['author']);
+  }
+  else if ($accounts && !$flags['workbench_access']) {
     $emails = _workbench_email_filter_users($accounts, $flags['author']);
   }
 
@@ -870,22 +879,19 @@ function workbench_email_get_editors($role, $sections) {
 }
 
 /**
- * Get all the editors of workbench access section.
+ * Returns the section selected by the user.
  *
- * @param $rid
- *   The role id.
  * @param string $op
  *   The operation being performed.
  * @param array $entity
  *   The entity in which to retrieve information from.
  *
- * @return array
- *   The available editors.
+ * @return array $sections
+ *   The sections selected by the user.
  */
-function workbench_email_get_workbench_access_editors($rid, $op = 'node', $data = array()) {
+function workbench_email_get_workbench_access_sections($op = 'node', $data = array()) {
   $sections = array();
 
-  $active_scheme = variable_get('workbench_access');
   if ($op == 'form') {
     $type = variable_get('workbench_access_custom_form');
     // Require a Workbench Access form element.
@@ -909,26 +915,34 @@ function workbench_email_get_workbench_access_editors($rid, $op = 'node', $data 
     }
   }
 
-  // Sometimes Workbench Access is enabled but is not defined for a specified
-  // role (for instance admin). Workbench Access handles this by still loading
-  // the form and rendering the element but when the user tries to submit,
-  // a validation error is thrown. So, for Workbench Email to handle this
-  // correctly, we must check against editors and return an empty array.
-  $editors = array();
-  if ($sections) {
-    if ($active_scheme == 'taxonomy') {
-      $sections = workbench_email_scheme_taxonomy_get_parents($sections);
-    }
-    else {
-      if ($active_scheme == 'menu') {
-        $sections = workbench_email_scheme_menu_get_parents($sections);
-      }
-    }
+  return $sections;
+}
 
-    $role = workbench_email_get_role_by_rid($rid);
-
-    // Get all the editors of workbench access section.
-    $editors = workbench_email_get_editors($role, $sections);
+/**
+ * Get all the editors of workbench access section.
+ *
+ * @param int $rid
+ *   The role id.
+ * @param array $sections
+ *   The sections selected by the user.
+ *
+ * @return array
+ *   The available editors.
+ */
+function workbench_email_get_workbench_access_editors($rid, $sections) {
+  $active_scheme = variable_get('workbench_access');
+  if ($active_scheme == 'taxonomy') {
+    $sections = workbench_email_scheme_taxonomy_get_parents($sections);
   }
+  else {
+    if ($active_scheme == 'menu') {
+      $sections = workbench_email_scheme_menu_get_parents($sections);
+    }
+  }
+
+  $role = workbench_email_get_role_by_rid($rid);
+
+  // Get all the editors of workbench access section.
+  $editors = workbench_email_get_editors($role, $sections);
   return $editors;
 }
