@@ -610,15 +610,16 @@ function workbench_email_get_author_role() {
  *   The available users in the role.
  *
  * @return bool
- *   Returns true if its the author transition.
+ *   Returns a true or false array of flags.
  */
 function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts = array(), &$editors = array()) {
   $author = FALSE;
+  $workbench_access = FALSE;
 
   // Load available users for given role.
   if ($rid == WORKBENCH_EMAIL_AUTHOR) {
     if ($op == 'form') {
-      $account = user_load($data['values']['uid']);
+      $account = user_load($data['form_state']['node']->uid);
     }
     else {
       $account = user_load($data->uid);
@@ -630,11 +631,15 @@ function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts =
     $accounts = workbench_email_get_users($rid);
   }
 
-  if (module_exists('workbench_access') && !$author) {
+  if (module_exists('workbench_access')) {
     $editors = workbench_email_get_workbench_access_editors($rid, $op, array('data' => $data));
+    $workbench_access = TRUE;
   }
 
-  return $author;
+  return array(
+    'author' => $author,
+    'workbench_access' => $workbench_access,
+  );
 }
 
 /**
@@ -646,19 +651,19 @@ function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts =
  *   The available users under a given role.
  * @param array $editors
  *   The available Workbench Access editors.
- * @param bool $author
- *   The author flag.
+ * @param array $flags
+ *   The array of flags for author and workbench access.
  *
  * @return array
  *   The finalized array of permitted users (email / name).
  */
-function workbench_email_filter_users($rid, $accounts = array(), $editors = array(), $author = FALSE) {
+function workbench_email_filter_users($rid, $accounts = array(), $editors = array(), $flags = array()) {
   $emails = array();
-  if ($editors && $accounts) {
-    $emails = workbench_email_filter_workbench_access_users($rid, $accounts, $editors, $author);
+  if ($editors && $accounts && $flags['workbench_access'] && !$flags['author']) {
+    $emails = workbench_email_filter_workbench_access_users($rid, $accounts, $editors, $flags['author']);
   }
-  else if ($accounts){
-    $emails = _workbench_email_filter_users($accounts, $author);
+  else if ($accounts && (!$flags['workbench_access'] || $flags['author'])){
+    $emails = _workbench_email_filter_users($accounts, $flags['author']);
   }
 
   return $emails;
@@ -882,12 +887,24 @@ function workbench_email_get_workbench_access_editors($rid, $op = 'node', $data 
 
   $active_scheme = variable_get('workbench_access');
   if ($op == 'form') {
-    if ($data['data']['values']['workbench_access']) {
-      $sections = $data['data']['values']['workbench_access'];
+    $type = variable_get('workbench_access_custom_form');
+    // Require a Workbench Access form element.
+    if ($type) {
+      if (isset($data['data']['form_state']['values']['workbench_access'])
+        && $data['data']['form_state']['values']['workbench_access']) {
+        $sections = $data['data']['form_state']['values']['workbench_access'];
+      }
+    }
+    else {
+      if (isset($data['data']['form_state']['values']['menu']['parent'])) {
+        $sections_menu = $data['data']['form_state']['values']['menu']['parent'];
+        $sections_list = explode(":", $sections_menu);
+        $sections[$sections_list[1]] = $sections_list[1];
+      }
     }
   }
   else {
-    if ($data['data']->workbench_access) {
+    if (isset($data['data']->workbench_access) && $data['data']->workbench_access) {
       $sections = $data['data']->workbench_access;
     }
   }

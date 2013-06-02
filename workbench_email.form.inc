@@ -80,8 +80,8 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
     foreach ($workbench_emails as $transition => $email_roles) {
       foreach ($email_roles as $rid => $email_transition) {
         $accounts = array(); $editors = array();
-        $author = workbench_email_get_all_transition_users($form_state, 'form', $email_transition->rid, $accounts, $editors);
-        $emails = workbench_email_filter_users($email_transition->rid, $accounts, $editors, $author);
+        $flags = workbench_email_get_all_transition_users(array('form' => $form, 'form_state' => $form_state), 'form', $email_transition->rid, $accounts, $editors);
+        $emails = workbench_email_filter_users($email_transition->rid, $accounts, $editors, $flags);
         if ($email_transition->from_name == $current_from_state &&
           $email_transition->to_name == $form_moderation_state &&
           !$email_transition->automatic && $emails) {
@@ -89,7 +89,7 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
             $settings = array(
               'email_transition' => $email_transition,
               'emails' => $emails,
-              'author' => $author,
+              'author' => $flags['author'],
               'editors' => $editors,
               'users' => $accounts,
             );
