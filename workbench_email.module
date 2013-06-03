@@ -614,8 +614,9 @@ function workbench_email_get_author_role() {
  */
 function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts = array(), &$editors = array()) {
   $author = FALSE;
-  $workbench_access = FALSE;
+  $workbench_access_enabled = FALSE;
   $section_selected = FALSE;
+  $workbench_access_active = FALSE;
 
   // Load available users for given role.
   if ($rid == WORKBENCH_EMAIL_AUTHOR) {
@@ -633,18 +634,34 @@ function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts =
   }
 
   if (module_exists('workbench_access')) {
-    $sections = workbench_email_get_workbench_access_sections($op, array('data' => $data));
-    if ($sections) {
-      $editors = workbench_email_get_workbench_access_editors($rid, $sections);
-      $section_selected = TRUE;
+    $workbench_access_enabled = TRUE;
+
+// If there are no options and the 'workbench_access' variable has not been set
+// then it seems that Workbench Access has not been configured.
+// if (empty($options) && !variable_get('workbench_access', FALSE)) {
+// $message = workbench_access_configuration_needed_message();
+
+//    workbench_access_find_form_elements($form);
+//    if (empty($form['workbench_access_fields']['#value'])) {
+//      drupal_set_message(workbench_access_configuration_needed_message(), 'warning');
+//    }
+
+
+      if ($active) {
+      $workbench_access_active = TRUE;
+      $sections = workbench_email_get_workbench_access_sections($op, array('data' => $data));
+      if ($sections) {
+        $editors = workbench_email_get_workbench_access_editors($rid, $sections);
+        $section_selected = TRUE;
+      }
     }
-    $workbench_access = TRUE;
   }
 
   return array(
     'author' => $author,
-    'workbench_access' => $workbench_access,
+    'workbench_access_enabled' => $workbench_access_enabled,
     'section_selected' => $section_selected,
+    'workbench_access_active' => $workbench_access_active,
   );
 }
 
@@ -665,13 +682,13 @@ function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts =
  */
 function workbench_email_filter_users($rid, $accounts = array(), $editors = array(), $flags = array()) {
   $emails = array();
-  if ($editors && $accounts && $flags['workbench_access'] && !$flags['author']) {
+  if ($editors && $accounts && $flags['workbench_access_enabled'] && $flags['workbench_access_active'] && !$flags['author']) {
     $emails = workbench_email_filter_workbench_access_users($rid, $accounts, $editors, $flags['author']);
   }
-  else if ($accounts && $flags['workbench_access'] && $flags['author'] && $flags['section_selected']){
+  else if ($accounts && $flags['workbench_access_enabled'] && $flags['workbench_access_active'] && $flags['author'] && $flags['section_selected']){
     $emails = _workbench_email_filter_users($accounts, $flags['author']);
   }
-  else if ($accounts && !$flags['workbench_access']) {
+  else if ($accounts && !$flags['workbench_access_enabled']) {
     $emails = _workbench_email_filter_users($accounts, $flags['author']);
   }
 
@@ -891,6 +908,11 @@ function workbench_email_get_editors($role, $sections) {
  */
 function workbench_email_get_workbench_access_sections($op = 'node', $data = array()) {
   $sections = array();
+
+  // If no workbench access sections defined, don't even try.
+  if (!workbench_access_get_active_tree()) {
+    return $sections;
+  }
 
   if ($op == 'form') {
     $type = variable_get('workbench_access_custom_form');
