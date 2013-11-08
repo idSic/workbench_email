@@ -41,7 +41,11 @@ function workbench_email_form($form, &$form_state) {
       '#tree' => TRUE,
     );
   }
-  drupal_add_js(drupal_get_path('module', 'workbench_email') . '/js/workbench_email.js');
+
+  $form['#attached']['js'] = array(
+    drupal_get_path('module', 'workbench_email') . '/js/workbench_email.js',
+  );
+
   $form['transitions_container'] = array(
     '#type' => 'fieldset',
     '#title' => t('Transitions'),
