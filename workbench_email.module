@@ -247,7 +247,7 @@ function workbench_email_mail_alter(&$message) {
   // Store the message for sending on cron.
   workbench_email_get_queue()->createItem($message);
   // Prevent the message from being sent.
-  $message['send'] = FALSE;
+  // $message['send'] = FALSE;
 }
 
 /**
