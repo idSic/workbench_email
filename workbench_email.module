@@ -207,8 +207,10 @@ function workbench_email_notification_submit($form, &$form_state) {
     ($form['options']['#access'] ? $wrapper_id = 'options' : $wrapper_id = 'revision_information');
     foreach ($form_state['values']['workflow_email'] as $rid => $role_emails) {
       foreach ($role_emails as $email) {
-        $email_transition = $form[$wrapper_id]['workflow_email'][$rid]['#hidden'];
-        workbench_email_mail_send($email, $email_transition, $form_state['node']);
+        if ($email) {
+          $email_transition = $form[$wrapper_id]['workflow_email'][$rid]['#hidden'];
+          workbench_email_mail_send($email, $email_transition, $form_state['node']);
+        }
       }
     }
   }
