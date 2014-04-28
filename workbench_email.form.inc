@@ -132,14 +132,15 @@ function workbench_email_form_node_callback($form, $form_state) {
  */
 function workbench_email_notification_validate($form, &$form_state) {
   if (module_exists('workbench_access')) {
-    // get selected section(s) / selected user(s) and verify that its a valid selection.
+    // Get selected section(s)/selected user(s) and verify that
+    // its a valid selection.
     $selected_wb_email = $form_state['values']['workbench_email'];
     $rid = key($selected_wb_email);
     $valid_sections = workbench_email_get_workbench_access_sections('form', array(
       'data' => array(
         'form' => $form,
-        'form_state' => $form_state
-      )
+        'form_state' => $form_state,
+      ),
     ));
     $editors = workbench_email_get_workbench_access_editors($rid, $valid_sections);
     if ($selected_wb_email && $editors) {
@@ -162,7 +163,7 @@ function workbench_email_notification_validate($form, &$form_state) {
         $list_items = theme('item_list', array(
           'items' => $error_messages,
           'title' => 'Error with email selection',
-          'type' => 'ul'
+          'type' => 'ul',
         ));
         form_set_error('workbench_email', $list_items);
       }

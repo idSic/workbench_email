@@ -217,6 +217,7 @@ function workbench_email_mail_send($email, $email_transition, $node) {
  *
  * @param array $message
  *   The message, as built and altered by drupal_mail().
+ *
  * @return mixed
  *   The message results.
  */
@@ -268,9 +269,6 @@ function workbench_email_cron_queue_info() {
 
 /**
  * Implements hook_mail_alter().
- *
- * @param array $message
- *   The fully rendered message.
  */
 function workbench_email_mail_alter(&$message) {
   if (isset($message['id']) && $message['id'] == 'workbench_email_we_transition') {
@@ -581,7 +579,7 @@ function workbench_email_get_user_roles($uid) {
  * @param string $role_name
  *   The role name
  *
- * @return stdClass
+ * @return object
  *   The role object
  */
 function workbench_email_get_role_by_name($role_name) {
@@ -600,7 +598,7 @@ function workbench_email_get_role_by_name($role_name) {
  * @param array $rid
  *   The role id.
  *
- * @return stdClass
+ * @return object
  *   The role object.
  */
 function workbench_email_get_role_by_rid($rid) {
@@ -616,7 +614,7 @@ function workbench_email_get_role_by_rid($rid) {
 /**
  * Returns an author role object.
  *
- * @return stdClass
+ * @return object
  *   The role object.
  */
 function workbench_email_get_author_role() {
@@ -635,10 +633,10 @@ function workbench_email_get_author_role() {
  *   The operation (form or node)
  * @param int $rid
  *   The role id of the transition.
- * @param array $editors
- *   The Workbench Access editors array.
  * @param array $accounts
  *   The available users in the role.
+ * @param array $editors
+ *   The Workbench Access editors array.
  *
  * @return bool
  *   Returns a true or false array of flags.
@@ -751,11 +749,11 @@ function workbench_email_filter_users($rid, $accounts = array(), $editors = arra
     if ($editors && $accounts && !$flags['author']) {
       $emails = workbench_email_filter_workbench_access_users($rid, $accounts, $editors, $flags['author']);
     }
-    else if ($accounts && $flags['author'] && $flags['section_selected']){
+    elseif ($accounts && $flags['author'] && $flags['section_selected']){
       $emails = _workbench_email_filter_users($accounts, $flags['author']);
     }
   }
-  else if (!$flags['workbench_access_enabled']) {
+  elseif (!$flags['workbench_access_enabled']) {
     if ($accounts) {
       $emails = _workbench_email_filter_users($accounts, $flags['author']);
     }
@@ -974,10 +972,10 @@ function workbench_email_get_editors($role, $sections) {
  *
  * @param string $op
  *   The operation being performed.
- * @param array $entity
- *   The entity in which to retrieve information from.
+ * @param array $data
+ *   The data in which to retrieve information from.
  *
- * @return array $sections
+ * @return array
  *   The sections selected by the user.
  */
 function workbench_email_get_workbench_access_sections($op = 'node', $data = array()) {
