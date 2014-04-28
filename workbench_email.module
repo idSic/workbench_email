@@ -710,8 +710,9 @@ function workbench_email_validate_workbench_access_configuration($op, $data = ar
 
   // Determine which form element to target.
   if (variable_get('workbench_access_custom_form', 1)) {
-    // If there are no options and the 'workbench_access' variable has not been set
-    // then it seems that Workbench Access has not been configured.
+    // If there are no options and the 'workbench_access' variable
+    // has not been set then it seems that Workbench Access
+    // has not been configured.
     if (empty($options) && !variable_get('workbench_access', FALSE)) {
       $configured = FALSE;
     }
@@ -749,7 +750,7 @@ function workbench_email_filter_users($rid, $accounts = array(), $editors = arra
     if ($editors && $accounts && !$flags['author']) {
       $emails = workbench_email_filter_workbench_access_users($rid, $accounts, $editors, $flags['author']);
     }
-    elseif ($accounts && $flags['author'] && $flags['section_selected']){
+    elseif ($accounts && $flags['author'] && $flags['section_selected']) {
       $emails = _workbench_email_filter_users($accounts, $flags['author']);
     }
   }

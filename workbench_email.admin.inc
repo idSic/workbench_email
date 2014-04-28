@@ -57,7 +57,7 @@ function workbench_email_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Queue Mail'),
     '#description' => t('This will send emails on cron instead of on form submittion. Useful for sites with lots of users.'),
-    '#options' => array(0 => 'Off', 1 => 'On'),
+    '#options' => array(0 => t('Off'), 1 => t('On')),
     '#weight' => -100,
   );
 
@@ -163,11 +163,6 @@ function workbench_email_form($form, &$form_state) {
         if ($rid) {
           $role = user_role_load($rid);
         }
-        $params['rid'] = $rid;
-        $params['role'] = $role->name;
-        $params['from_state'] = $email_transition->from_name;
-        $params['to_state'] = $email_transition->to_name;
-
         $form['emails'][$transition_label][$rid] = array(
           '#type' => 'fieldset',
           '#title' => check_plain(t("Email @role_name",
@@ -275,9 +270,7 @@ function theme_workbench_email_form($variables) {
   );
 
   $roles = workbench_email_determine_valid_roles();
-  $role_names = array();
   foreach ($roles as $rid => $role) {
-    $role_names[$rid] = ucwords($role);
     $header[] = t("@role", array('@role' => ucwords($role)));
   }
 
