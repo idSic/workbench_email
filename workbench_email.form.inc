@@ -86,19 +86,20 @@ function workbench_email_form_node_form_alter(&$form, $form_state) {
           $email_transition->to_name == $form_moderation_state &&
           !$email_transition->automatic && $emails) {
 
-            $settings = array(
-              'email_transition' => $email_transition,
-              'emails' => $emails,
-              'author' => $flags['author'],
-              'editors' => $editors,
-              'users' => $accounts,
-            );
+          $settings = array(
+            'email_transition' => $email_transition,
+            'emails' => $emails,
+            'author' => $flags['author'],
+            'editors' => $editors,
+            'users' => $accounts,
+          );
 
           workbench_email_create_form_element($form, $settings);
         }
       }
     }
 
+    $form['actions']['submit']['#validate'][] = 'workbench_email_notification_validate';
     $form['actions']['submit']['#submit'][] = 'workbench_email_notification_submit';
   }
 }
@@ -117,6 +118,49 @@ function workbench_email_form_node_callback($form, $form_state) {
     return $form['options']['workbench_email'];
   }
   return $form['revision_information']['workbench_email'];
+}
+
+/**
+ * Validates the options chosen.
+ *
+ * Users can go back and forth between fieldsets
+ * causing the email options of a previous Workbench
+ * Access section displayed and chosen when the
+ * user actually went back and changed there initial
+ * decision. Instead of trying to do something fancy
+ * with dom and JS, I chose to validate in PHP and throw
+ * an error.
+ *
+ * @param $form
+ * @param $form_state
+ */
+function workbench_email_notification_validate($form, &$form_state) {
+  if (module_exists('workbench_access')) {
+    // get selected section(s) / selected user(s) and verify that its a valid selection.
+    $selected_wb_email = $form_state['values']['workbench_email'];
+    $rid = key($selected_wb_email);
+    $valid_sections = workbench_email_get_workbench_access_sections('form', array('data' => array('form' => $form, 'form_state' => $form_state)));
+    $editors = workbench_email_get_workbench_access_editors($rid, $valid_sections);
+    if ($selected_wb_email && $editors) {
+      $error_messages = array();
+      foreach ($selected_wb_email as $role_id => $wb_email) {
+        $mail = current($wb_email);
+        $not_found = TRUE;
+        foreach ($editors as $uid => $possible_editor) {
+          if ($mail == $possible_editor['mail']) {
+            $not_found = FALSE;
+          }
+        }
+        if ($not_found) {
+          $error_messages[$mail] = t('The combination of section and email (@email) are not valid. Please try again or chose another combination of sections and users.', array('@email' => $mail));
+        }
+      }
+      if ($error_messages) {
+        $list_items = theme('item_list', array('items' => $error_messages, 'title' => 'Error with email selection', 'type' => 'ul'));
+        form_set_error('workbench_email', $list_items);
+      }
+    }
+  }
 }
 
 /**
@@ -196,7 +240,6 @@ function workbench_email_create_form_element(&$form, $settings) {
     '#description' => $description,
     '#multiple' => TRUE,
     '#hidden' => $email_transition,
-    '#attributes' => array('class' => array('chosen-widget')),
   );
 
   $user_groups = array('editors' => $editors, 'users' => $users);

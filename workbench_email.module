@@ -157,7 +157,7 @@ function workbench_email_workbench_moderation_transition($node, $previous_state,
  */
 function workbench_email_mail_send($email, $email_transition, $node) {
   $module = 'workbench_email';
-  $key = 'workbench_email';
+  $key = 'we_transition';
   $to = $email;
   $from = variable_get('site_mail', 'admin@example.com');
   $role = workbench_email_get_role_by_rid($email_transition->rid);
@@ -191,28 +191,67 @@ function workbench_email_mail_send($email, $email_transition, $node) {
   $language = language_default();
   $send = TRUE;
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
-  if ($result['result'] == TRUE) {
-    drupal_set_message(t('Email notifications sent.'), 'status', FALSE);
-  }
-  else {
-    drupal_set_message(t('There was a problem sending the
+  $queue_mail = variable_get('workbench_email_queue_mail');
+  if (!$queue_mail) {
+    if ($result['result'] == TRUE) {
+      drupal_set_message(t('Email notifications sent.'), 'status', FALSE);
+    }
+    else {
+      drupal_set_message(t('There was a problem sending the
                          email notifications. No messages were
                          sent.'), 'error', FALSE);
-    watchdog('workbench_email',
-      'There was a problem sending the email notifications.
-      No messages were sent.
-      From State: !from_state
-      New State: !new_state
-      Role: !role_name
-      To: !to',
-      array(
-        '!from_state' => $email_transition->from_name,
-        '!new_state' => $email_transition->to_name,
-        '!role_name' => $role->name,
-        '!to' => $to,
-      )
-    );
+      watchdog('workbench_email',
+        'There was a problem sending the email notifications.
+        No messages were sent.
+        From State: !from_state
+        New State: !new_state
+        Role: !role_name
+        To: !to',
+        array(
+          '!from_state' => $email_transition->from_name,
+          '!new_state' => $email_transition->to_name,
+          '!role_name' => $role->name,
+          '!to' => $to,
+        )
+      );
+    }
   }
+  else {
+    drupal_set_message(t('Email notifications have been queued and will be sent shortly.'), 'status', FALSE);
+  }
+}
+
+/**
+ * Send emails here.
+ *
+ * @param $message
+ *   The message, as built and altered by drupal_mail().
+ *
+ * @see drupal_mail()
+ * @see queue_mail_mail_alter()
+ */
+function workbench_email_send_queue_email($message = array()) {
+  // Retrieve the responsible implementation for this message.
+  $system = drupal_mail_system($message['module'], $message['key']);
+  // Format the message body.
+  $message = $system->format($message);
+
+  // The original caller requested sending. Sending was canceled by one or
+  // more hook_mail_alter() implementations. We set 'result' to NULL, because
+  // FALSE indicates an error in sending.
+  if (empty($message['send'])) {
+    $message['result'] = NULL;
+  }
+  // Sending was originally requested and was not canceled.
+  else {
+    $message['result'] = $system->mail($message);
+    // Log errors.
+    if (!$message['result']) {
+      watchdog('workbench_email', 'Error sending e-mail (from %from to %to).', array('%from' => $message['from'], '%to' => $message['to']), WATCHDOG_ERROR);
+    }
+  }
+
+  return $message;
 }
 
 /**
@@ -220,7 +259,7 @@ function workbench_email_mail_send($email, $email_transition, $node) {
  */
 function workbench_email_mail($key, &$message, $params) {
   switch ($key) {
-    case 'workbench_email':
+    case 'we_transition':
       $message['subject'] = t(token_replace($params['subject'], $params));
       $message['body'][] = t(token_replace($params['message'], $params));
       break;
@@ -232,7 +271,7 @@ function workbench_email_mail($key, &$message, $params) {
  */
 function workbench_email_cron_queue_info() {
   $queues[WORKBENCH_EMAIL_QUEUE_NAME] = array(
-    'worker callback' => 'workbench_email_mail_send',
+    'worker callback' => 'workbench_email_send_queue_email',
   );
   return $queues;
 }
@@ -244,10 +283,12 @@ function workbench_email_cron_queue_info() {
  *   The fully rendered message.
  */
 function workbench_email_mail_alter(&$message) {
-  // Store the message for sending on cron.
-  workbench_email_get_queue()->createItem($message);
-  // Prevent the message from being sent.
-  // $message['send'] = FALSE;
+  if (isset($message['id']) && $message['id'] == 'workbench_email_we_transition') {
+    // Store the message for sending on cron.
+    workbench_email_get_queue()->createItem($message);
+    // Prevent the message from being sent.
+    $message['send'] = FALSE;
+  }
 }
 
 /**
@@ -853,7 +894,12 @@ function workbench_email_scheme_menu_get_parents($sections) {
   for ($i = 1; $i <= 9; $i++) {
     $query->fields('m', array('p' . $i));
   }
-  $query->condition('mlid', array_keys($sections), 'IN');
+  if (count($sections) > 1) {
+    $query->condition('mlid', array_keys($sections), 'IN');
+  }
+  else {
+    $query->condition('mlid', $sections, 'IN');
+  }
   $result = $query->execute();
 
   foreach ($result as $record) {

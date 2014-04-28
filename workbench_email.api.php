@@ -14,7 +14,7 @@
  *
  * hook_form_alter() does not provide a developer with access on
  * ajax events. So this drupal_alter() is provided to gain access
- * to the form element during those ajax events. #kapooya.
+ * to the form element during those ajax events. #kapooya #whanger.
  *
  * @param array $form
  *   The form array.

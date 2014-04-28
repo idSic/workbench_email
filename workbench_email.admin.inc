@@ -46,6 +46,21 @@ function workbench_email_form($form, &$form_state) {
     drupal_get_path('module', 'workbench_email') . '/js/workbench_email.js',
   );
 
+  $form['config_container'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Configuration'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['config_container']['queue_mail'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Queue Mail'),
+    '#description' => t('This will send emails on cron instead of on form submittion. Useful for sites with lots of users.'),
+    '#options' => array(0 => 'Off', 1 => 'On'),
+    '#weight' => -100,
+  );
+
   $form['transitions_container'] = array(
     '#type' => 'fieldset',
     '#title' => t('Transitions'),
@@ -340,6 +355,7 @@ function workbench_email_form_validate($form, &$form_state) {
  *   The form_state array
  */
 function workbench_email_form_submit($form, &$form_state) {
+  variable_set('workbench_email_queue_mail', $form_state['values']['config_container']['queue_mail']);
   $roles = workbench_email_determine_valid_roles();
   foreach ($form_state['values']['transitions'] as $transition) {
     foreach ($roles as $rid => $role) {

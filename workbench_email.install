@@ -62,7 +62,7 @@ function workbench_email_schema() {
         'not null' => TRUE,
         'default' => 0,
         'description' => 'The automatic setting',
-      )
+      ),
     ),
     'indexes' => array(
       'rid' => array('rid'),
@@ -84,13 +84,6 @@ function workbench_email_requirements($phase) {
 
   if ($phase == 'runtime') {
     $description = array();
-    if (!module_exists('chosen')) {
-      $url = l(t('Chosen'), 'http://drupal.org/project/chosen');
-      $description[] = t('!chosen is not installed on the site.
-      Please download the module to fully support the UI.',
-        array('!chosen' => $url));
-    }
-
     if (!module_exists('token')) {
       $url = l(t('Token'), 'http://drupal.org/project/token');
       $description[] = t('!token is not installed on the site.
@@ -137,6 +130,7 @@ function workbench_email_install() {
  * Implements hook_uninstall().
  */
 function workbench_email_uninstall() {
+  variable_del('workbench_email_queue_mail');
   drupal_load('module', 'workbench_email');
   workbench_email_get_queue()->deleteQueue();
 }
