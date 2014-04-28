@@ -112,15 +112,6 @@ function workbench_email_features_api() {
 
 /**
  * Implements hook_workbench_moderation_transition().
- *
- * @param object $node
- *   The node that is being transitioned.
- *
- * @param string $previous_state
- *   The state of the revision before the transition occurred.
- *
- * @param string $new_state
- *   The new state of the revision.
  */
 function workbench_email_workbench_moderation_transition($node, $previous_state, $new_state) {
   $transition = new stdClass();
@@ -224,11 +215,10 @@ function workbench_email_mail_send($email, $email_transition, $node) {
 /**
  * Send emails here.
  *
- * @param $message
+ * @param array $message
  *   The message, as built and altered by drupal_mail().
- *
- * @see drupal_mail()
- * @see queue_mail_mail_alter()
+ * @return mixed
+ *   The message results.
  */
 function workbench_email_send_queue_email($message = array()) {
   // Retrieve the responsible implementation for this message.
@@ -416,7 +406,7 @@ function workbench_email_determine_valid_roles_per_transition($from_state, $to_s
  * Determines the email attributes to retrieve.
  *
  * @param object $transition
- *   The transtion object
+ *   The transition object
  *
  * @param int $rid
  *   The role ID
@@ -461,7 +451,7 @@ function workbench_email_get($transition = NULL, $rid = NULL, $author = NULL, $a
  * Saves the email into the table.
  *
  * @param object $transition
- *   The transtion object
+ *   The transition object
  *
  * @param int $rid
  *   The role ID

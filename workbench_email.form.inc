@@ -10,12 +10,6 @@
  * Determines the current state and next state. Depending on that criteria
  * builds a form element(s) to allow the user to select users to send
  * an email to.
- *
- * @param array &$form
- *   The form array
- *
- * @param array $form_state
- *   The form_state array
  */
 function workbench_email_form_node_form_alter(&$form, $form_state) {
   if (workbench_moderation_node_type_moderated($form['type']['#value'])) {
@@ -131,15 +125,22 @@ function workbench_email_form_node_callback($form, $form_state) {
  * with dom and JS, I chose to validate in PHP and throw
  * an error.
  *
- * @param $form
- * @param $form_state
+ * @param array $form
+ *   The form array.
+ * @param array $form_state
+ *   The form_state array.
  */
 function workbench_email_notification_validate($form, &$form_state) {
   if (module_exists('workbench_access')) {
     // get selected section(s) / selected user(s) and verify that its a valid selection.
     $selected_wb_email = $form_state['values']['workbench_email'];
     $rid = key($selected_wb_email);
-    $valid_sections = workbench_email_get_workbench_access_sections('form', array('data' => array('form' => $form, 'form_state' => $form_state)));
+    $valid_sections = workbench_email_get_workbench_access_sections('form', array(
+      'data' => array(
+        'form' => $form,
+        'form_state' => $form_state
+      )
+    ));
     $editors = workbench_email_get_workbench_access_editors($rid, $valid_sections);
     if ($selected_wb_email && $editors) {
       $error_messages = array();
@@ -152,11 +153,17 @@ function workbench_email_notification_validate($form, &$form_state) {
           }
         }
         if ($not_found) {
-          $error_messages[$mail] = t('The combination of section and email (@email) are not valid. Please try again or chose another combination of sections and users.', array('@email' => $mail));
+          $error_messages[$mail] = t('The combination of section and email
+            (@email) are not valid. Please try again or chose another
+            combination of sections and users.', array('@email' => $mail));
         }
       }
       if ($error_messages) {
-        $list_items = theme('item_list', array('items' => $error_messages, 'title' => 'Error with email selection', 'type' => 'ul'));
+        $list_items = theme('item_list', array(
+          'items' => $error_messages,
+          'title' => 'Error with email selection',
+          'type' => 'ul'
+        ));
         form_set_error('workbench_email', $list_items);
       }
     }

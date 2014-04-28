@@ -147,7 +147,8 @@ function workbench_email_form($form, &$form_state) {
     foreach ($workbench_emails as $transition_label => $email_transition_set) {
       $state_label = $email_transition_set;
       $transition = array_shift($state_label);
-      $transition_title = t(ucwords($state_labels[$transition->from_name] . ' To ' . $state_labels[$transition->to_name]));
+      $label = ucwords($state_labels[$transition->from_name] . ' To ' . $state_labels[$transition->to_name]);
+      $transition_title = t('!label', array('!label' => $label));
       $form['emails'][$transition_label] = array(
         '#type' => 'fieldset',
         '#title' => check_plain($transition_title),
