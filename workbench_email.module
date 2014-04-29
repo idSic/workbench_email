@@ -272,10 +272,13 @@ function workbench_email_cron_queue_info() {
  */
 function workbench_email_mail_alter(&$message) {
   if (isset($message['id']) && $message['id'] == 'workbench_email_we_transition') {
-    // Store the message for sending on cron.
-    workbench_email_get_queue()->createItem($message);
-    // Prevent the message from being sent.
-    $message['send'] = FALSE;
+    $queue_mail = variable_get('workbench_email_queue_mail');
+    if ($queue_mail) {
+      // Store the message for sending on cron.
+      workbench_email_get_queue()->createItem($message);
+      // Prevent the message from being sent.
+      $message['send'] = FALSE;
+    }
   }
 }
 
