@@ -56,7 +56,7 @@ function workbench_email_form($form, &$form_state) {
   $form['config_container']['queue_mail'] = array(
     '#type' => 'checkbox',
     '#title' => t('Queue Mail'),
-    '#description' => t('This will send emails on cron instead of on form submittion. Useful for sites with lots of users.'),
+    '#description' => t('This will send emails on cron instead of on form submission. Useful for sites with lots of users.'),
     '#options' => array(0 => t('Off'), 1 => t('On')),
     '#weight' => -100,
     '#default_value' => variable_get('workbench_email_queue_mail', FALSE),
