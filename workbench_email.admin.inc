@@ -59,6 +59,7 @@ function workbench_email_form($form, &$form_state) {
     '#description' => t('This will send emails on cron instead of on form submittion. Useful for sites with lots of users.'),
     '#options' => array(0 => t('Off'), 1 => t('On')),
     '#weight' => -100,
+    '#default_value' => variable_get('workbench_email_queue_mail', FALSE),
   );
 
   $form['transitions_container'] = array(
