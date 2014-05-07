@@ -132,7 +132,6 @@ function workbench_email_form_node_callback($form, $form_state) {
  */
 function workbench_email_notification_validate($form, &$form_state) {
   if (module_exists('workbench_access')) {
-    if(isset($form_state['values']['workbench_email'])) {
       // Get selected section(s)/selected user(s) and verify that
       // its a valid selection.
       $selected_wb_email = $form_state['values']['workbench_email'];
@@ -170,7 +169,6 @@ function workbench_email_notification_validate($form, &$form_state) {
         }
       }
     }
-  }
 }
 
 /**
