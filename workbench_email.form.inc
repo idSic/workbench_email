@@ -131,7 +131,7 @@ function workbench_email_form_node_callback($form, $form_state) {
  *   The form_state array.
  */
 function workbench_email_notification_validate($form, &$form_state) {
-  if (module_exists('workbench_access')) {
+  if (module_exists('workbench_access') && isset($form_state['values']['workbench_email'])) {
       // Get selected section(s)/selected user(s) and verify that
       // its a valid selection.
       $selected_wb_email = $form_state['values']['workbench_email'];
