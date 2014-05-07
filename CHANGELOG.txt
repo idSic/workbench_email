@@ -1,8 +1,8 @@
-Workbench Email 7.x-3.0, 2014-05-07
+Workbench Email 7.x-3.2, 2014-05-07
 -----------------------------------
 by teknic: Issue 2260279: Fixed issue with non array being passed into sql
 
-Workbench Email 7.x-3.0, 2014-04-29
+Workbench Email 7.x-3.1, 2014-04-29
 -----------------------------------
 by teknic: Issue 2253911: Queue Mail value not being loaded on Config Form
 by teknic: Issue 2253907: Email notification reports failure despite being added to queue
