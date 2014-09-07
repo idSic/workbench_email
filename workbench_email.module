@@ -179,6 +179,8 @@ function workbench_email_mail_send($email, $email_transition, $node) {
   $params['message'] = $email_transition->message;
   $params['node'] = $node;
   $params['user'] = $user;
+  $params['workbench_email']['account'] = user_load_by_mail($email);
+  $params['workbench_email']['email_transition'] = $email_transition;
   $language = language_default();
   $send = TRUE;
   $result = drupal_mail($module, $key, $to, $language, $params, $from, $send);
@@ -1043,4 +1045,57 @@ function workbench_email_get_workbench_access_editors($rid, $sections) {
   // Get all the editors of workbench access section.
   $editors = workbench_email_get_editors($role, $sections);
   return $editors;
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function workbench_email_token_info() {
+  $info = array();
+  if ($_GET['q'] == 'admin/config/workbench/email') {
+    // Workbench email tokens.
+    $info['types']['workbench-email'] = array(
+      'name' => t('Workbench email'),
+      'description' => t('Tokens related to Workbench Email.'),
+    );
+    $info['tokens']['workbench-email']['name'] = array(
+      'name' => t('Username being emailed'),
+      'description' => t('The username of the user being emailed.'),
+    );
+    $info['tokens']['workbench-email']['email-transition'] = array(
+      'name' => t('Email transition state'),
+      'description' => t('The transition state of the node (eg: Draft to Needs Review).'),
+    );
+  }
+  return $info;
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function workbench_email_tokens($type, $tokens, array $data = array(), array $options = array()) {
+  $replacements = array();
+
+  if ($type == 'workbench-email') {
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'email-transition':
+          if (isset($data['workbench_email']['email_transition']) &&
+            !empty($data['workbench_email']['email_transition'])) {
+            $email_transition = $data['workbench_email']['email_transition'];
+            $label = ucwords(str_replace('_', ' ', $email_transition->from_name) . ' To ' . str_replace('_', ' ', $email_transition->to_name));
+            $replacements[$original] = check_plain($label);
+          }
+          break;
+        case 'name':
+          if (isset($data['workbench_email']['account']) && !empty($data['workbench_email']['account'])) {
+            $account = $data['workbench_email']['account'];
+            $replacements[$original] = check_plain($account->name);
+          }
+          break;
+      }
+    }
+  }
+
+  return $replacements;
 }
