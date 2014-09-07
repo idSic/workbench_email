@@ -120,6 +120,7 @@ function workbench_email_requirements($phase) {
  * Implements hook_install().
  */
 function workbench_email_install() {
+  drupal_load('module', 'workbench_email');
   workbench_email_get_queue()->createQueue();
 }
 
