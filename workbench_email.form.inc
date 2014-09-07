@@ -149,7 +149,7 @@ function workbench_email_notification_validate($form, &$form_state) {
           $mail = current($wb_email);
           // Handle the situation where "All Users" was selected or
           // no option was selected.
-          if ($mail == 0) {
+          if ($mail == '0') {
             break;
           }
           $not_found = TRUE;
