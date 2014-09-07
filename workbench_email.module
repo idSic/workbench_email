@@ -670,11 +670,13 @@ function workbench_email_get_all_transition_users($data, $op, $rid, &$accounts =
   if (module_exists('workbench_access')) {
     $workbench_access_enabled = TRUE;
     $workbench_access_configured = workbench_email_validate_workbench_access_configuration($op, array('data' => $data));
+    if ($workbench_access_configured) {
     $sections = workbench_email_get_workbench_access_sections($op, array('data' => $data));
     if ($sections) {
       $section_selected = TRUE;
       $editors = workbench_email_get_workbench_access_editors($rid, $sections);
     }
+  }
   }
 
   return array(
@@ -759,7 +761,7 @@ function workbench_email_filter_users($rid, $accounts = array(), $editors = arra
       $emails = _workbench_email_filter_users($accounts, $flags['author']);
     }
   }
-  elseif (!$flags['workbench_access_enabled']) {
+  else {
     if ($accounts) {
       $emails = _workbench_email_filter_users($accounts, $flags['author']);
     }
@@ -993,19 +995,53 @@ function workbench_email_get_workbench_access_sections($op = 'node', $data = arr
   $sections = array();
 
   if ($op == 'form') {
-    $type = variable_get('workbench_access_custom_form');
-    // Require a Workbench Access form element.
-    if ($type) {
-      if (isset($data['data']['form_state']['values']['workbench_access'])
-        && $data['data']['form_state']['values']['workbench_access']) {
-        $sections = $data['data']['form_state']['values']['workbench_access'];
+    // Can be either menu or taxonomy.
+    $workbench_access = variable_get('workbench_access');
+    if ($workbench_access == 'menu') {
+      // Type is a boolean to determine if the user has chosen a
+      // "Require a Workbench Access form element" which means,
+      // a custom way of displaying the WA form or using the standard
+      // node form.
+      $type = variable_get('workbench_access_custom_form');
+      if ($type) {
+        if (isset($data['data']['form_state']['values']['workbench_access'])
+          && $data['data']['form_state']['values']['workbench_access']) {
+          $sections = $data['data']['form_state']['values']['workbench_access'];
+        }
+      }
+      else {
+        if (isset($data['data']['form_state']['values']['menu']['parent'])) {
+          $sections_menu = $data['data']['form_state']['values']['menu']['parent'];
+          $sections_list = explode(":", $sections_menu);
+          $sections[$sections_list[1]] = $sections_list[1];
+        }
       }
     }
     else {
-      if (isset($data['data']['form_state']['values']['menu']['parent'])) {
-        $sections_menu = $data['data']['form_state']['values']['menu']['parent'];
-        $sections_list = explode(":", $sections_menu);
-        $sections[$sections_list[1]] = $sections_list[1];
+      if ($workbench_access == 'taxonomy') {
+        $type = variable_get('workbench_access_custom_form');
+        if ($type) {
+          if (isset($data['data']['form_state']['values']['workbench_access'])
+            && $data['data']['form_state']['values']['workbench_access']) {
+            $sections = $data['data']['form_state']['values']['workbench_access'];
+          }
+        }
+        else {
+          // In this case, a custom field was provided, so loop around the fields
+          // and store the tids this user has chosen.
+          if (!empty($data['data']['form_state']['values']['workbench_access_fields'])) {
+            $values = $data['data']['form_state']['values'];
+            $sections = array();
+            $lang = $values['language'];
+            foreach ($values['workbench_access_fields'] as $field) {
+              if (!empty($values[$field][$lang])) {
+                foreach ($values[$field][$lang] as $term) {
+                  $sections[$term['tid']] = $term['tid'];
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -1034,14 +1070,10 @@ function workbench_email_get_workbench_access_editors($rid, $sections) {
   if ($active_scheme == 'taxonomy') {
     $sections = workbench_email_scheme_taxonomy_get_parents($sections);
   }
-  else {
-    if ($active_scheme == 'menu') {
+  else if ($active_scheme == 'menu') {
       $sections = workbench_email_scheme_menu_get_parents($sections);
     }
-  }
-
   $role = workbench_email_get_role_by_rid($rid);
-
   // Get all the editors of workbench access section.
   $editors = workbench_email_get_editors($role, $sections);
   return $editors;
