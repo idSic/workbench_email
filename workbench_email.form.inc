@@ -147,6 +147,11 @@ function workbench_email_notification_validate($form, &$form_state) {
         $error_messages = array();
         foreach ($selected_wb_email as $role_id => $wb_email) {
           $mail = current($wb_email);
+          // Handle the situation where "All Users" was selected or
+          // no option was selected.
+          if ($mail == 0) {
+            break;
+          }
           $not_found = TRUE;
           foreach ($editors as $uid => $possible_editor) {
             if ($mail == $possible_editor['mail']) {
