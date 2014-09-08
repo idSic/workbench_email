@@ -84,7 +84,7 @@ function workbench_email_form($form, &$form_state) {
     );
 
     foreach ($roles as $rid => $role) {
-      ($role == 'author' ? $author = 1 : $author = 0);
+      ($role == 'workbench-email:original-author-of-node' ? $author = 1 : $author = 0);
       $workbench_email = workbench_email_get($transition, $rid, $author);
       $element[$role]['notify'] = array(
         '#type' => 'checkbox',
@@ -115,6 +115,12 @@ function workbench_email_form($form, &$form_state) {
     $form['transitions'][] = $element;
   }
 
+  $form['transitions_container']['help_text_original_author'] = array(
+    '#markup' => t('<strong>Original Author</strong>: The original author
+    is available for each state transition to provide the ability
+    to notify the author of the state changes even the change was
+    triggered by someone else.<br />'),
+  );
   $form['transitions_container']['help_text_notify'] = array(
     '#markup' => t('<strong>Notify</strong>: When content moves from
     state X to state Y, the user performing the operation will be presented
@@ -160,9 +166,11 @@ function workbench_email_form($form, &$form_state) {
       foreach ($email_transition_set as $rid => $email_transition) {
         $subject = $email_transition->subject;
         $message = $email_transition->message;
-        $role = workbench_email_get_author_role();
         if ($rid) {
           $role = user_role_load($rid);
+        }
+        else {
+          $role = workbench_email_get_author_role();
         }
         $form['emails'][$transition_label][$rid] = array(
           '#type' => 'fieldset',
@@ -272,6 +280,9 @@ function theme_workbench_email_form($variables) {
 
   $roles = workbench_email_determine_valid_roles();
   foreach ($roles as $rid => $role) {
+    if ($rid == '0') {
+      $role = 'Original Author';
+    }
     $header[] = t("@role", array('@role' => ucwords($role)));
   }
 
@@ -355,7 +366,7 @@ function workbench_email_form_submit($form, &$form_state) {
   foreach ($form_state['values']['transitions'] as $transition) {
     foreach ($roles as $rid => $role) {
       if ($transition[$role]['notify']) {
-        ($role == 'author' ? $author = 1 : $author = 0);
+        ($rid == WORKBENCH_EMAIL_AUTHOR ? $author = 1 : $author = 0);
         $automatic = $transition[$role]['auto_notify'];
         $transition_label = $transition['transition']->from_name . '_to_' . $transition['transition']->to_name;
         $subject = NULL;

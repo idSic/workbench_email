@@ -332,7 +332,7 @@ function workbench_email_determine_moderation_permissions() {
  */
 function workbench_email_determine_valid_roles() {
   $valid_roles = array();
-  $valid_roles[0] = 'author';
+  $valid_roles[0] = 'workbench-email:original-author-of-node';
   $types = drupal_map_assoc(workbench_moderation_moderate_node_types());
   $all_types = node_type_get_types();
   foreach ($types as $type) {
@@ -625,7 +625,7 @@ function workbench_email_get_role_by_rid($rid) {
 function workbench_email_get_author_role() {
   $role = new stdClass();
   $role->rid = WORKBENCH_EMAIL_AUTHOR;
-  $role->name = 'author';
+  $role->name = 'original author';
   return $role;
 }
 
