@@ -84,7 +84,7 @@ function workbench_email_form($form, &$form_state) {
     );
 
     foreach ($roles as $rid => $role) {
-      ($role == 'workbench-email:original-author-of-node' ? $author = 1 : $author = 0);
+      ($rid == WORKBENCH_EMAIL_AUTHOR ? $author = 1 : $author = 0);
       $workbench_email = workbench_email_get($transition, $rid, $author);
       $element[$role]['notify'] = array(
         '#type' => 'checkbox',
