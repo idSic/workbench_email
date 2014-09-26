@@ -280,7 +280,7 @@ function theme_workbench_email_form($variables) {
 
   $roles = workbench_email_determine_valid_roles();
   foreach ($roles as $rid => $role) {
-    if ($rid == '0') {
+    if ($rid == WORKBENCH_EMAIL_AUTHOR) {
       $role = 'Original Author';
     }
     $header[] = t("@role", array('@role' => ucwords($role)));

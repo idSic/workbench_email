@@ -600,7 +600,7 @@ function workbench_email_get_role_by_name($role_name) {
 /**
  * Returns role object.
  *
- * @param array $rid
+ * @param int $rid
  *   The role id.
  *
  * @return object

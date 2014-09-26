@@ -273,5 +273,6 @@ function workbench_email_update_7006() {
  * Adds the workbench email queue
  */
 function workbench_email_update_7007() {
+  drupal_load('module', 'workbench_email');
   workbench_email_get_queue()->createQueue();
 }
