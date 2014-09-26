@@ -1,3 +1,11 @@
+Workbench Email 7.x-3.2, 2014-09-25
+by teknic: Issue 2279273: Fixed error where if no one is selected from drop down
+by teknic: Issue 2268703: Added token for name of user who is being emailed
+by teknic: Issue 2280193: Fixed error on install or update
+by teknic: Issue 2334583: Fixed "author" role breaking admin page
+by teknic: Issue 2306745: Fixed issue, was same as 2334583
+by teknic: Issue 2275245: Fixed issue with supporting workbench access functionality
+
 Workbench Email 7.x-3.2, 2014-05-07
 -----------------------------------
 by teknic: Issue 2260279: Fixed issue with non array being passed into sql
