@@ -32,7 +32,7 @@ function workbench_email_schema() {
       'rid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => 0,
         'description' => 'The role id',
       ),
